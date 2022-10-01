@@ -212,7 +212,7 @@ read_cnmf <- function(cNMF_k, patients, sum_to_1 = T, sum_rows_to_1 = F, filter_
   
   
   if (sum_rows_to_1 == T){ #sum rows to 1,instead of cols. Yotam said that this could be better and improve clustering of the programs
-    for (row_num in 1:nrow(table)){
+    for (row_num in 1:nrow(result)){
       row_sum = sum(result[row_num,])
       norm_row = result[row_num,]/row_sum 
       result[row_num,] = norm_row
@@ -221,7 +221,7 @@ read_cnmf <- function(cNMF_k, patients, sum_to_1 = T, sum_rows_to_1 = F, filter_
   }
   
   if(sum_to_1 == T){ #new 11.9
-    for (col_num in 1:ncol(table)){
+    for (col_num in 1:ncol(result)){
       program_sum = sum(result[,col_num])
       norm_program = result[,col_num]/program_sum 
       result[,col_num] = norm_program
