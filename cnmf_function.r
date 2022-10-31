@@ -331,8 +331,9 @@ cnmf_enrichment <- function(num_of_clusters,annotation, result, num_of_top_genes
   # return(hypyxia_programs)
 }
 
-find_clusters <- function(result,num_of_clusters, clustering_distance, write = T) {
-  cor_martix = cor (result)
+find_clusters <- function(result,num_of_clusters, clustering_distance, write = T,separate_annotation = NULL
+                          , cor_method = "pearson") {
+  cor_martix = cor (result,method = cor_method)
   patients = colnames(cor_martix)
   patients = gsub(pattern = " program.*", replacement = "",x = patients)
   patient_annontation = data.frame(patient = patients, row.names = colnames(cor_martix))
@@ -346,6 +347,10 @@ find_clusters <- function(result,num_of_clusters, clustering_distance, write = T
   
   annotation = cluster_programs(num_of_clusters = num_of_clusters, pht = pht)
   
+  if (separate_annotation %>% is.null() == F){
+    myannotation = cbind(annotation[["myannotation"]], separate_annotation)
+    annotation[["myannotation"]] = myannotation
+  }
   p = pheatmap(mat = cor_martix, breaks=seq(-1, 1, length.out=101),annotation_col =  annotation[["myannotation"]],
                annotation_colors = annotation[["ann_colors"]], clustering_distance_rows = clustering_distance,
                clustering_distance_cols = clustering_distance)
@@ -358,6 +363,7 @@ find_clusters <- function(result,num_of_clusters, clustering_distance, write = T
   return(annotation)
   
 }
+
 
 #Instead of average programs in each cluster, analyze every single one of them and then cluster
 analyze_by_single_program  <- function(cNMF_k,patients_vector, db,sum_rows_to_1 , sum_to_1 , units,clustering_distance ,
