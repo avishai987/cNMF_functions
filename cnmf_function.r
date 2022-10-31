@@ -142,9 +142,9 @@ filter_matrix <- function(data,rows,cols, remove_zero = T) {
 #' @export 
 
 read_cnmf <- function(cNMF_k, patients, sum_to_1 = T, sum_rows_to_1 = F, filter_uncommon_genes = F, gene_list = NULL,
-                      units = "TPM", directory = "./") {
+                      units = "TPM", directory = "./",quiet = F) {
   #should setwd to the folder with the results and genes file
-  genes = scan("./common_genes.txt", character(), quote = "")
+  genes = scan("./common_genes.txt", character(), quiet =  quiet)
   genes = genes[order(genes)]
   
   #choose k that ran on cNMF
@@ -212,7 +212,7 @@ read_cnmf <- function(cNMF_k, patients, sum_to_1 = T, sum_rows_to_1 = F, filter_
   
   
   if (sum_rows_to_1 == T){ #sum rows to 1,instead of cols. Yotam said that this could be better and improve clustering of the programs
-    for (row_num in 1:nrow(result)){
+    for (row_num in 1:nrow(table)){
       row_sum = sum(result[row_num,])
       norm_row = result[row_num,]/row_sum 
       result[row_num,] = norm_row
@@ -221,7 +221,7 @@ read_cnmf <- function(cNMF_k, patients, sum_to_1 = T, sum_rows_to_1 = F, filter_
   }
   
   if(sum_to_1 == T){ #new 11.9
-    for (col_num in 1:ncol(result)){
+    for (col_num in 1:ncol(table)){
       program_sum = sum(result[,col_num])
       norm_program = result[,col_num]/program_sum 
       result[,col_num] = norm_program
@@ -231,6 +231,7 @@ read_cnmf <- function(cNMF_k, patients, sum_to_1 = T, sum_rows_to_1 = F, filter_
   
   return (result)
 }
+
 
 cluster_programs <- function(num_of_clusters, pht, cluster_col_or_row = "tree_row") {
   myannotation = as.data.frame(cutree(pht[[cluster_col_or_row]], k = num_of_clusters))
