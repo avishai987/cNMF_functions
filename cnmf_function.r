@@ -360,18 +360,20 @@ find_clusters <- function(result,num_of_clusters, clustering_distance, write = T
 }
 
 #Instead of average programs in each cluster, analyze every single one of them and then cluster
-analyze_by_single_program  <- function(cNMF_k,patients_vector, db,sum_rows_to_1 , sum_to_1 , units,clustering_distance ) {
+analyze_by_single_program  <- function(cNMF_k,patients_vector, db,sum_rows_to_1 , sum_to_1 , units,clustering_distance ,
+                                       num_of_clusters = 0,return_annotation = F,filter_uncommon_genes = F,specific_annotation = NULL,quiet = F) {
   setwd("C:/Users/avishaiw.EKMD/Desktop/Data/EGFR/cNMF/input/EGFR_cNMF/")
   all_table = data.frame(names = unique(db$gs_name), row.names = unique(db$gs_name))
   
   for (patient in patients_vector){
-    result = read_cnmf(cNMF_k = cNMF_k,patients = patient, sum_rows_to_1 = sum_rows_to_1, sum_to_1 = sum_to_1,units = units)
+    result = read_cnmf(cNMF_k = cNMF_k,patients = patient, sum_rows_to_1 = sum_rows_to_1, sum_to_1 = sum_to_1,units = units
+                       ,filter_uncommon_genes = filter_uncommon_genes,quiet = quiet)
     for (col_num in 1:ncol(result)){
       all_table[names(result)[col_num]] = 0
       col = result[,col_num,drop = F] 
       col = col %>% ungroup() %>% arrange(desc(col[1]))
       top_genes = head(col,200) %>% rownames() # "num_of_top_genes" genes from top_genes
-      genes = scan("C:/Users/avishaiw.EKMD/My Drive/תואר שני/EGFR/Single cell project (Dana)/cNMF/common_genes.txt", character(), quote = "")
+      genes = scan("C:/Users/avishaiw.EKMD/My Drive/תואר שני/EGFR/Single cell project (Dana)/cNMF/common_genes.txt", character(), quote = "",quiet = quiet)
       enrichment_res = genes_vec_enrichment(genes = top_genes, background = genes, gene_sets = db, title = names(result)[col_num],
                                             add_bg = F, silent = T)
       enrichment_res = enrichment_res %>% arrange(factor(enrichment_res$pathway_name, levels = all_table$names)) #sort enrichment res by result table
@@ -379,8 +381,26 @@ analyze_by_single_program  <- function(cNMF_k,patients_vector, db,sum_rows_to_1 
     }
   }
   all_table$names <- NULL
-  p = sig_heatmap(all_patients_result = all_table,title = "all patients separately k =3",clustering_distance = clustering_distance)
-  return (p)
+  
+  if (specific_annotation %>% is.null() != T){
+    annotation =  list(myannotation = specific_annotation)
+    p = sig_heatmap(all_patients_result = all_table,title = "all patients separately k = " %>% paste0(cNMF_k),clustering_distance = clustering_distance
+                    ,annotation = annotation)
+  }else if (num_of_clusters == 0){
+    p = sig_heatmap(all_patients_result = all_table,title = "all patients separately k = " %>% paste0(cNMF_k),clustering_distance = clustering_distance,
+    )
+  } else if (num_of_clusters != 0){
+    p = sig_heatmap(all_patients_result = all_table,title = "all patients separately k = " %>% paste0(cNMF_k),clustering_distance = clustering_distance
+                    ,silent = T)
+    annotation = cluster_programs(num_of_clusters = num_of_clusters, pht = p,cluster_col_or_row = "tree_col")
+    p = sig_heatmap(all_patients_result = all_table,title = "all patients separately k = " %>% paste0(cNMF_k),clustering_distance = clustering_distance
+                    ,annotation = annotation)
+    
+  }
+  if (return_annotation == T) {
+    return(annotation)
+  }else{return (p)}
+  
 }
 
 add_prgorams_score <- function(result,num_of_clusters,annotation,cNMF_k,normalization,num_of_top_genes,
