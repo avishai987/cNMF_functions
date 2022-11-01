@@ -142,7 +142,7 @@ filter_matrix <- function(data,rows,cols, remove_zero = T) {
 #' @export 
 
 read_cnmf <- function(cNMF_k, patients, sum_to_1 = T, sum_rows_to_1 = F, filter_uncommon_genes = F, gene_list = NULL,
-                      units = "TPM", directory = "./",quiet = F) {
+                      units = "TPM", directory = "./",quiet = F, k_from_list = NULL) {
   #should setwd to the folder with the results and genes file
   genes = scan("./common_genes.txt", character(), quiet =  quiet)
   genes = genes[order(genes)]
@@ -151,8 +151,14 @@ read_cnmf <- function(cNMF_k, patients, sum_to_1 = T, sum_rows_to_1 = F, filter_
   result = data.frame(gene_names = genes)
   
   for (name in patients){
+    print(name)
     #load patient programs scores
     folder = paste0("./",name,"_cNMF")
+    
+    if(k_from_list %>% is.null() == F){
+      cNMF_k = k_from_list[name] %>% as.numeric()
+    }
+    
     if (units == "TPM"){
       file  = paste0(name,"_cNMF.gene_spectra_tpm.k_",cNMF_k,".dt_0_1.txt")
     }else if(units == "Z_score") {
@@ -367,13 +373,15 @@ find_clusters <- function(result,num_of_clusters, clustering_distance, write = T
 
 #Instead of average programs in each cluster, analyze every single one of them and then cluster
 analyze_by_single_program  <- function(cNMF_k,patients_vector, db,sum_rows_to_1 , sum_to_1 , units,clustering_distance ,
-                                       num_of_clusters = 0,return_annotation = F,filter_uncommon_genes = F,specific_annotation = NULL,quiet = F) {
-  setwd("C:/Users/avishaiw.EKMD/Desktop/Data/EGFR/cNMF/input/EGFR_cNMF/")
+                                       num_of_clusters = 0,return_annotation = F,filter_uncommon_genes = F,specific_annotation = NULL,quiet = F
+                                       ,k_from_list = NULL, folder = "EGFR_cNMF") {
+  setwd("C:/Users/avishaiw.EKMD/Desktop/Data/EGFR/cNMF/input/" %>% paste0(folder) %>% paste0('/'))
   all_table = data.frame(names = unique(db$gs_name), row.names = unique(db$gs_name))
   
   for (patient in patients_vector){
     result = read_cnmf(cNMF_k = cNMF_k,patients = patient, sum_rows_to_1 = sum_rows_to_1, sum_to_1 = sum_to_1,units = units
-                       ,filter_uncommon_genes = filter_uncommon_genes,quiet = quiet)
+                       ,filter_uncommon_genes = filter_uncommon_genes,quiet = quiet
+                        ,k_from_list = k_from_list)
     for (col_num in 1:ncol(result)){
       all_table[names(result)[col_num]] = 0
       col = result[,col_num,drop = F] 
