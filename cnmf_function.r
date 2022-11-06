@@ -463,7 +463,6 @@ program_assignment <- function(dataset,num_of_programs,larger_by = 1) {
     programs_lst = c(programs_lst,"metaProgram." %>% paste0(i))
   }
   scores_metadata = FetchData(object = dataset,vars = c(programs_lst))
-  scores_metadata = sum_df_cols_to_1(scores_metadata)
   assignment_df =  data.frame(row.names = rownames(scores_metadata))
   
   for (program_name in programs_lst) {
