@@ -272,7 +272,7 @@ analayze_clusters <- function(annotation) {
 
 cnmf_enrichment <- function(num_of_clusters,annotation, result, num_of_top_genes, db, write_top_genes = F, normalization = "average",
                             top_genes_num = 200 ,common_gene_num = 2, write_plots = T, silent = F,
-                            print_significant = T) {
+                            print_significant = T,convert_background = F) {
   if (normalization != "average" & normalization != "common_genes"){
     stop("normalization != average & normalization != common_genes")
   }
@@ -317,7 +317,7 @@ cnmf_enrichment <- function(num_of_clusters,annotation, result, num_of_top_genes
     
     #perform enrichment analysis
     enrichment_result = genes_vec_enrichment(genes = top_genes, background = genes, gene_sets = db, title = paste("cluster",cluster),
-                                             add_bg = F, silent = silent)
+                                             add_bg = F, silent = silent,convert_background = convert_background)
     if (print_significant == TRUE){
       print ("cluster" %s+% cluster %s+% ":") #return only significant values
       print (enrichment_result %>% filter(enrichment_result$p.adjust <0.05)) #return only significant values
@@ -417,7 +417,7 @@ analyze_by_single_program  <- function(cNMF_k,patients_vector, db,sum_rows_to_1 
   
 }
 
-add_prgorams_score <- function(result,num_of_clusters,annotation,cNMF_k,normalization,num_of_top_genes,
+add_prgorams_score <- function(result,num_of_clusters,annotation,cNMF_k,normalization,num_of_top_genes = 200,
                                dataset = NULL) {
   myannotation = annotation[["myannotation"]]
   
@@ -428,7 +428,11 @@ add_prgorams_score <- function(result,num_of_clusters,annotation,cNMF_k,normaliz
     
     if (normalization == "average"){
       program_consensus =data.frame(score = rowMeans(result[,program_rows]))  #create df with mean of cluster
-      program_consensus = program_consensus %>% arrange(desc(score)) %>% top_n(200) #sort by score and take top 200 rows
+      # program_consensus = program_consensus %>% arrange(desc(score))  #sort by score and take top 200 rows
+      if (num_of_top_genes %>% is.numeric()){
+        program_consensus = program_consensus %>% arrange(desc(score)) %>% top_n(num_of_top_genes) #sort by score and take top 200 rows
+      } 
+      
       program_consensus = program_consensus %>% rename(!!col_name := score) #rename "score" to col_name
     }else{ stop ("only average is available at the moment")}
     gene_expression = dataset@assays[["RNA"]]@data [ rownames(dataset@assays[["RNA"]]@data) %in% rownames(program_consensus),] %>% 
@@ -442,5 +446,46 @@ add_prgorams_score <- function(result,num_of_clusters,annotation,cNMF_k,normaliz
     
     dataset = AddMetaData(object = dataset,metadata = final_score_average)
   }
+  return(dataset)
+}
+
+sum_df_cols_to_1 <- function(df) {
+    for (col_num in 1:ncol(df)){
+      col_sum = sum(df[,col_num])
+      norm_col = df[,col_num]/col_sum 
+      df[,col_num] = norm_col
+    }
+  return(df)
+}
+program_assignment <- function(dataset,num_of_programs,larger_by = 1) {
+  programs_lst = c()
+  for (i in 1:num_of_programs) {
+    programs_lst = c(programs_lst,"metaProgram." %>% paste0(i))
+  }
+  scores_metadata = FetchData(object = dataset,vars = c(programs_lst))
+  scores_metadata = sum_df_cols_to_1(scores_metadata)
+  assignment_df =  data.frame(row.names = rownames(scores_metadata))
+  
+  for (program_name in programs_lst) {
+    logical_df= data.frame(row.names = rownames(scores_metadata))
+    for (other_program_name in programs_lst) {
+      if(other_program_name == program_name){next}
+      val = (scores_metadata[program_name] > larger_by * scores_metadata[other_program_name])
+      logical_df = cbind(logical_df,val)
+      assignment_df[program_name] = rowSums(logical_df) == num_of_programs-1
+    }
+  }
+
+
+  fun <- function(x) {
+    index = which(x == T)
+    if(index %>% length() == 0){ #if all false
+      index = 0
+    }
+    index
+  }
+  assignment_df$assignment = apply(assignment_df, 1, fun)
+  metadata_df = data.frame(assignment = assignment_df$assignment, row.names = rownames(assignment_df))
+  dataset = AddMetaData(object = dataset,metadata = metadata_df,col.name = "program.assignment")
   return(dataset)
 }
