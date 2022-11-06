@@ -417,27 +417,28 @@ analyze_by_single_program  <- function(cNMF_k,patients_vector, db,sum_rows_to_1 
   
 }
 
+#add scores to seurat from cNMF output
 add_prgorams_score <- function(result,num_of_clusters,annotation,cNMF_k,normalization,num_of_top_genes = 200,
                                dataset = NULL) {
   myannotation = annotation[["myannotation"]]
   
   for (cluster in 1:num_of_clusters) {
     col_name = paste("metaProgram",cluster)
-    
     program_rows = rownames(myannotation)[myannotation$cluster == cluster] #get rows of the cluster
     
     if (normalization == "average"){
       program_consensus =data.frame(score = rowMeans(result[,program_rows]))  #create df with mean of cluster
       # program_consensus = program_consensus %>% arrange(desc(score))  #sort by score and take top 200 rows
-      if (num_of_top_genes %>% is.numeric()){
+      if (num_of_top_genes %>% is.numeric()){ # if not numeric, calculate by all genes
         program_consensus = program_consensus %>% arrange(desc(score)) %>% top_n(num_of_top_genes) #sort by score and take top 200 rows
       } 
       
       program_consensus = program_consensus %>% rename(!!col_name := score) #rename "score" to col_name
     }else{ stop ("only average is available at the moment")}
+    #get expression from genes in program_consensus:
     gene_expression = dataset@assays[["RNA"]]@data [ rownames(dataset@assays[["RNA"]]@data) %in% rownames(program_consensus),] %>% 
       as.data.frame()
-    # Sort d1 and d2 with columns A and B
+    # Sort d1 and d2 with columns A and B:
     gene_expression <- gene_expression[order(match(rownames(gene_expression),rownames(program_consensus))),]
     final_score = program_consensus[,1,drop = T] * gene_expression
     final_score_average = colMeans(final_score)
@@ -457,6 +458,9 @@ sum_df_cols_to_1 <- function(df) {
     }
   return(df)
 }
+
+#assign program to each cell after add_prgorams_score
+#' @param larger_by how much a program should be greater then the second one to be assign as this program of this cell.
 program_assignment <- function(dataset,num_of_programs,larger_by = 1) {
   programs_lst = c()
   for (i in 1:num_of_programs) {
