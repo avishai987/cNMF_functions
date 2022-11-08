@@ -317,7 +317,7 @@ cnmf_enrichment <- function(num_of_clusters,annotation, result, num_of_top_genes
     
     #perform enrichment analysis
     enrichment_result = genes_vec_enrichment(genes = top_genes, background = genes, gene_sets = db, title = paste("cluster",cluster),
-                                             add_bg = F, silent = silent,convert_background = convert_background)
+                                             add_bg = F, silent = silent,convert_background = convert_background,add_msigdb_to_set = T)
     if (print_significant == TRUE){
       print ("cluster" %s+% cluster %s+% ":") #return only significant values
       print (enrichment_result %>% filter(enrichment_result$p.adjust <0.05)) #return only significant values
