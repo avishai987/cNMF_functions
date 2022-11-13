@@ -419,7 +419,7 @@ analyze_by_single_program  <- function(cNMF_k,patients_vector, db,sum_rows_to_1 
 
 #add scores to seurat from cNMF output
 add_prgorams_score <- function(result,num_of_clusters,annotation,cNMF_k,normalization,num_of_top_genes = 200,
-                               dataset = NULL) {
+                               dataset = NULL,combine_score = "mean") {
   myannotation = annotation[["myannotation"]]
   
   for (cluster in 1:num_of_clusters) {
@@ -441,7 +441,11 @@ add_prgorams_score <- function(result,num_of_clusters,annotation,cNMF_k,normaliz
     # Sort d1 and d2 with columns A and B:
     gene_expression <- gene_expression[order(match(rownames(gene_expression),rownames(program_consensus))),]
     final_score = program_consensus[,1,drop = T] * gene_expression
-    final_score_average = colMeans(final_score)
+    if (combine_score == "mean"){
+      final_score_average = colMeans(final_score)
+    }else if (combine_score == "sum"){
+      final_score_average = colSums(final_score)
+    }else{stop("combine_score shpuld be 'mean' or 'sum'")}
     final_score_average = data.frame(score = final_score_average, row.names = colnames(final_score))
     final_score_average = final_score_average %>% rename(!!col_name := score) #rename "score" to col_name
     
