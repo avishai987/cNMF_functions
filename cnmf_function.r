@@ -163,6 +163,8 @@ read_cnmf <- function(cNMF_k, patients, sum_to_1 = T, sum_rows_to_1 = F, filter_
       file  = paste0(name,"_cNMF.gene_spectra_tpm.k_",cNMF_k,".dt_0_1.txt")
     }else if(units == "Z_score") {
       file  = paste0(name,"_cNMF.gene_spectra_score.k_",cNMF_k,".dt_0_1.txt")
+    }else if(units == "consensus") {
+      file  = paste0(name,"_cNMF.spectra.k_",cNMF_k,".dt_0_1",".consensus.txt")
     }
     table = fread(paste0(folder,"/",file)) %>%  as.data.frame()
     table[1] <- NULL
@@ -184,6 +186,7 @@ read_cnmf <- function(cNMF_k, patients, sum_to_1 = T, sum_rows_to_1 = F, filter_
       # }else { norm_program = table[,program_num]}
       norm_program = table[,program_num]
       
+    
       if (table(rownames(table) == result$gene_names)["TRUE"] != length(genes)){
         print ("wrong calculation, check genes order")
       }
@@ -419,7 +422,7 @@ analyze_by_single_program  <- function(cNMF_k,patients_vector, db,sum_rows_to_1 
 
 #add scores to seurat from cNMF output
 add_prgorams_score <- function(result,num_of_clusters,annotation,cNMF_k,normalization,num_of_top_genes = 200,
-                               dataset = NULL,combine_score = "mean") {
+                               dataset = NULL,combine_score = "mean", cancel_log = F) {
   myannotation = annotation[["myannotation"]]
   
   for (cluster in 1:num_of_clusters) {
@@ -440,6 +443,7 @@ add_prgorams_score <- function(result,num_of_clusters,annotation,cNMF_k,normaliz
       as.data.frame()
     # Sort d1 and d2 with columns A and B:
     gene_expression <- gene_expression[order(match(rownames(gene_expression),rownames(program_consensus))),]
+    if(cancel_log == T){gene_expression = exp(1)**gene_expression}
     final_score = program_consensus[,1,drop = T] * gene_expression
     if (combine_score == "mean"){
       final_score_average = colMeans(final_score)
