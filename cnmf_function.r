@@ -433,7 +433,7 @@ add_prgorams_score <- function(result,num_of_clusters,annotation,cNMF_k,normaliz
       program_consensus =data.frame(score = rowMeans(result[,program_rows]))  #create df with mean of cluster
       # program_consensus = program_consensus %>% arrange(desc(score))  #sort by score and take top 200 rows
       if (num_of_top_genes %>% is.numeric()){ # if not numeric, calculate by all genes
-        program_consensus = program_consensus %>% arrange(desc(score)) %>% top_n(num_of_top_genes) #sort by score and take top 200 rows
+        program_consensus = program_consensus %>% arrange(desc(score)) %>% top_n(num_of_top_genes,"score") #sort by score and take top 200 rows
       } 
       
       program_consensus = program_consensus %>% rename(!!col_name := score) #rename "score" to col_name
