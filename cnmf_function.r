@@ -426,7 +426,7 @@ add_prgorams_score <- function(result,num_of_clusters,annotation,cNMF_k,normaliz
   myannotation = annotation[["myannotation"]]
   
   for (cluster in 1:num_of_clusters) {
-    col_name = paste("metaProgram",cluster)
+    col_name = paste0("metaProgram",cluster)
     program_rows = rownames(myannotation)[myannotation$cluster == cluster] #get rows of the cluster
     
     if (normalization == "average"){
