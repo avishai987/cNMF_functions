@@ -422,7 +422,7 @@ analyze_by_single_program  <- function(cNMF_k,patients_vector, db,sum_rows_to_1 
 
 #add scores to seurat from cNMF output
 add_prgorams_score <- function(result,num_of_clusters,annotation,cNMF_k,normalization,num_of_top_genes = 200,
-                               dataset = NULL,combine_score = "mean", cancel_log = F) {
+                               dataset = NULL,combine_score = "mean", cancel_log = F,slot = "counts") {
   myannotation = annotation[["myannotation"]]
   
   for (cluster in 1:num_of_clusters) {
@@ -439,14 +439,13 @@ add_prgorams_score <- function(result,num_of_clusters,annotation,cNMF_k,normaliz
       program_consensus = program_consensus %>% rename(!!col_name := score) #rename "score" to col_name
     }else{ stop ("only average is available at the moment")}
     #get expression from genes in program_consensus:
-    gene_expression = dataset@assays[["RNA"]]@data [ rownames(dataset@assays[["RNA"]]@data) %in% rownames(program_consensus),] %>% 
+    gene_expression = dataset@assays[["RNA"]] %>% slot(slot)[rownames(dataset@assays[["RNA"]] %>% slot(slot)) %in% rownames(program_consensus),] %>% 
       as.data.frame()
     # Sort d1 and d2 with columns A and B:
     gene_expression <- gene_expression[order(match(rownames(gene_expression),rownames(program_consensus))),]
     if(cancel_log == T){
       gene_expression = 2**gene_expression #convert from log2(tpm+1) to tpm+1
       gene_expression = gene_expression-1 #convert from tpm+1 to tpm
-      
       }
     final_score = program_consensus[,1,drop = T] * gene_expression
     if (combine_score == "mean"){
