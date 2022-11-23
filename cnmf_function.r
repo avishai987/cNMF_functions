@@ -443,7 +443,11 @@ add_prgorams_score <- function(result,num_of_clusters,annotation,cNMF_k,normaliz
       as.data.frame()
     # Sort d1 and d2 with columns A and B:
     gene_expression <- gene_expression[order(match(rownames(gene_expression),rownames(program_consensus))),]
-    if(cancel_log == T){gene_expression = exp(1)**gene_expression}
+    if(cancel_log == T){
+      gene_expression = 2**gene_expression #convert from log2(tpm+1) to tpm+1
+      gene_expression = gene_expression-1 #convert from tpm+1 to tpm
+      
+      }
     final_score = program_consensus[,1,drop = T] * gene_expression
     if (combine_score == "mean"){
       final_score_average = colMeans(final_score)
