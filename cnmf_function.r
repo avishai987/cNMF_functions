@@ -439,7 +439,7 @@ add_prgorams_score <- function(result,num_of_clusters,annotation,cNMF_k,normaliz
       program_consensus = program_consensus %>% rename(!!col_name := score) #rename "score" to col_name
     }else{ stop ("only average is available at the moment")}
     #get expression from genes in program_consensus:
-    gene_expression = dataset@assays[["RNA"]] %>% slot(slot)[rownames(dataset@assays[["RNA"]] %>% slot(slot)) %in% rownames(program_consensus),] %>% 
+    gene_expression = (dataset@assays[["RNA"]] %>% slot(slot))[rownames(dataset@assays[["RNA"]] %>% slot(slot)) %in% rownames(program_consensus),] %>% 
       as.data.frame()
     # Sort d1 and d2 with columns A and B:
     gene_expression <- gene_expression[order(match(rownames(gene_expression),rownames(program_consensus))),]
