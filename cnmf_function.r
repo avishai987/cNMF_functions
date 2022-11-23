@@ -422,7 +422,7 @@ analyze_by_single_program  <- function(cNMF_k,patients_vector, db,sum_rows_to_1 
 
 #add scores to seurat from cNMF output
 add_prgorams_score <- function(result,num_of_clusters,annotation,cNMF_k,normalization,num_of_top_genes = 200,
-                               dataset = NULL,combine_score = "mean", cancel_log = F,slot = "counts") {
+                               dataset = NULL,combine_score = "mean", cancel_log = F,slot = "counts",cpm = F) {
   myannotation = annotation[["myannotation"]]
   
   for (cluster in 1:num_of_clusters) {
@@ -439,6 +439,7 @@ add_prgorams_score <- function(result,num_of_clusters,annotation,cNMF_k,normaliz
       program_consensus = program_consensus %>% rename(!!col_name := score) #rename "score" to col_name
     }else{ stop ("only average is available at the moment")}
     #get expression from genes in program_consensus:
+    if (cpm == T){dataset = NormalizeData(object = dataset,normalization.method = "RC", scale.factor = 1e6)} #make normalization like cnmf
     gene_expression = (dataset@assays[["RNA"]] %>% slot(slot))[rownames(dataset@assays[["RNA"]] %>% slot(slot)) %in% rownames(program_consensus),] %>% 
       as.data.frame()
     # Sort d1 and d2 with columns A and B:
