@@ -422,7 +422,7 @@ analyze_by_single_program  <- function(cNMF_k,patients_vector, db,sum_rows_to_1 
 
 #add scores to seurat from cNMF output
 add_prgorams_score <- function(result,num_of_clusters,annotation,cNMF_k,normalization,num_of_top_genes = 200,
-                               dataset = NULL,combine_score = "mean", cancel_log = F,slot = "counts",cpm = F) {
+                               dataset = NULL,combine_score = "mean", cancel_log = F,slot = "counts",cpm = F,floor_negative = F) {
   myannotation = annotation[["myannotation"]]
   
   for (cluster in 1:num_of_clusters) {
@@ -447,8 +447,12 @@ add_prgorams_score <- function(result,num_of_clusters,annotation,cNMF_k,normaliz
     if(cancel_log == T){
       gene_expression = 2**gene_expression #convert from log2(tpm+1) to tpm+1
       gene_expression = gene_expression-1 #convert from tpm+1 to tpm
-      }
-    final_score = program_consensus[,1,drop = T] * gene_expression
+    }
+    program_consensus = program_consensus[,1,drop = T]
+    if (floor_negative == T){
+      program_consensus[program_consensus<0] = 0
+    }
+    final_score = program_consensus * gene_expression
     if (combine_score == "mean"){
       final_score_average = colMeans(final_score)
     }else if (combine_score == "sum"){
