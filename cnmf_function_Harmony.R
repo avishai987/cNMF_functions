@@ -22,7 +22,7 @@ expression = dataset@assays$RNA@data %>% as.matrix()
 expression = expression[rownames(expression) %in% colnames(gep_scores),]
 usage = gep_scores%*%expression
 all_metagenes = usage %>% t() %>% as.data.frame()
-return(return)
+return(all_metagenes)
 }
 
 cell_percentage <- function(dataset,time.point_var) {
