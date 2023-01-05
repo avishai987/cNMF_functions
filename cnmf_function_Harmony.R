@@ -16,3 +16,26 @@ program_assignment <- function(dataset,larger_by = 1,program_names) {
   dataset = AddMetaData(object = dataset,metadata = assignment_df,col.name = "program.assignment")
   return(dataset)
 }
+expression_mult <- function(gep_scores,dataset) {
+gep_scores = gep_scores  %>% t() %>%  as.matrix()
+expression = dataset@assays$RNA@data %>% as.matrix()
+expression = expression[rownames(expression) %in% colnames(gep_scores),]
+usage = gep_scores%*%expression
+all_metagenes = usage %>% t() %>% as.data.frame()
+return(return)
+}
+
+cell_percentage <- function(dataset,time.point_var) {
+    data =FetchData(object = dataset,vars = c("program.assignment",time.point_var))
+  data = data %>% dplyr::count(program.assignment, .[time.point_var]) %>%  dplyr::add_count(.[time.point_var], wt = n, name = "overall")%>% 
+  mutate(proportion = n / overall)   
+  
+  plt_list = list()
+    time.point_var = ensym(time.point_var)
+  for (program_name in unique(data$program.assignment)) {
+    program_data = data[data$program.assignment == program_name,]
+    p = ggplot(data=program_data, aes(x=!!time.point_var, y=proportion)) +geom_bar(stat="identity")+ylab("precentage") +ggtitle("program" %>% paste(program_data$program.assignment %>% unique() %>% as.character())) 
+      plt_list[[program_name]] = p
+  }
+  gridExtra::grid.arrange(grobs = plt_list)
+}
