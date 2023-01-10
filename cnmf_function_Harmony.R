@@ -30,7 +30,8 @@ expression_mult <- function(gep_scores,dataset, top_genes = F,z_score = F,min_ma
         metagene = my_usage %>% t() %>% as.data.frame()
         cell_usage = cbind(cell_usage,metagene)
     }
-  
+    cell_usage = cell_usage %>% setNames(colnames(gep_scores)) 
+
   }else{
     gep_scores = gep_scores  %>% t() %>%  as.matrix()
     expression = dataset@assays$RNA@data %>% as.matrix()
