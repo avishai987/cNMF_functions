@@ -22,7 +22,7 @@ expression_mult <- function(gep_scores,dataset, top_genes = F,z_score = F,min_ma
     for (col_num in 1:ncol(gep_scores)) {
        top_200 = gep_scores %>% select(col_num) %>%  arrange(desc(gep_scores[col_num])) %>% head(200)  #take top 200 rows
        top_200 = top_200 %>% t() %>%  as.matrix()
-       expression = lung@assays$RNA@data %>% as.matrix()
+       expression = dataset@assays$RNA@data %>% as.matrix()
        expression = expression[rownames(expression) %in% colnames(top_200),]  #remove rows not in top_genes
        top_200= top_200[,colnames(top_200) %in% rownames(expression)] #remove rows not in expression
       
