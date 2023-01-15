@@ -166,6 +166,15 @@ merge_scores_with_adding <- function(score_1,score_2,z_score = F,min_max = F,sum
   return(merged_gep_scores)
 }
 
+#' @title combine variable genes of 2 datasets
+#' @description take genes from dataset1 if there are in most @most_var_genes_num genes in dataset1 && in the @all_var_genes_num of dataset2. same for dataset 2.
+#' @param dataset_1 PARAM_DESCRIPTION
+#' @param dataset_2 PARAM_DESCRIPTION
+#' @param all_var_genes_num PARAM_DESCRIPTION
+#' @param most_var_genes_num PARAM_DESCRIPTION
+#' @return OUTPUT_DESCRIPTION
+#' @export 
+
 combine_var_genes <- function(dataset_1, dataset_2, all_var_genes_num, most_var_genes_num) {
   dataset_1 = FindVariableFeatures(object = dataset_1,nfeatures = all_var_genes_num)
   dataset_1_all_vargenes = VariableFeatures(dataset_1)
@@ -186,11 +195,21 @@ combine_var_genes <- function(dataset_1, dataset_2, all_var_genes_num, most_var_
   return(genes_lst)
 }
 
-positive_genes <- function(dataset) {
+
+
+
+#' @title find positive genes
+#' @description find genes that have at least num_of_cells positive value after z score scailing
+#' @param dataset dataset
+#' @param num_of_cells num_of_cells to b positive
+#' @return genes list
+#' @export 
+
+positive_genes <- function(dataset,num_of_cells) {
   genes_lst = c()
   for (row in 1:nrow(dataset@assays[["RNA"]]@scale.data)) {
     vector = dataset@assays[["RNA"]]@scale.data[row,]
-    if (sum(vector>0,na.rm = T)>=400){
+    if (sum(vector>0,na.rm = T)>=num_of_cells){
       genes_lst = c(genes_lst,rownames(dataset@assays[["RNA"]]@scale.data)[row])
     }
   }
