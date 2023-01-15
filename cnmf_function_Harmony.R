@@ -185,3 +185,15 @@ combine_var_genes <- function(dataset_1, dataset_2, all_var_genes_num, most_var_
   genes_lst = unique(genes_lst) #remove duplicates
   return(genes_lst)
 }
+
+positive_genes <- function(dataset) {
+  genes_lst = c()
+  for (row in 1:nrow(dataset@assays[["RNA"]]@scale.data)) {
+    vector = dataset@assays[["RNA"]]@scale.data[row,]
+    if (sum(vector>0,na.rm = T)>=400){
+      genes_lst = c(genes_lst,rownames(dataset@assays[["RNA"]]@scale.data)[row])
+    }
+  }
+  length(genes_lst)
+  return(genes_lst)
+}
