@@ -64,7 +64,9 @@ cell_percentage <- function(dataset,time.point_var) {
     time.point_var = ensym(time.point_var)
   for (program_name in unique(data$program.assignment)) {
     program_data = data[data$program.assignment == program_name,]
-    p = ggplot(data=program_data, aes(x=!!time.point_var, y=proportion)) +geom_bar(stat="identity")+ylab("precentage") +ggtitle("program" %>% paste(program_data$program.assignment %>% unique() %>% as.character())) 
+    p = ggplot(data=program_data, aes(x=!!time.point_var, y=proportion)) +geom_bar(stat="identity")+ylab("precentage") +
+      ggtitle("program" %>% paste(program_data$program.assignment %>% unique() %>% as.character()))+
+      scale_y_continuous(limits = c(0,1))   
       plt_list[[program_name]] = p
   }
   gridExtra::grid.arrange(grobs = plt_list)
