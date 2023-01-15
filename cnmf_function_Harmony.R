@@ -165,3 +165,23 @@ merge_scores_with_adding <- function(score_1,score_2,z_score = F,min_max = F,sum
   gridExtra::grid.arrange(grobs = plt_list)
   return(merged_gep_scores)
 }
+
+combine_var_genes <- function(dataset_1, dataset_2, all_var_genes_num, most_var_genes_num) {
+  dataset_1 = FindVariableFeatures(object = dataset_1,nfeatures = all_var_genes_num)
+  dataset_1_all_vargenes = VariableFeatures(dataset_1)
+  dataset_1 = FindVariableFeatures(object = dataset_1,nfeatures = most_var_genes_num)
+  dataset_1_most_vargenes = VariableFeatures(dataset_1)
+  
+  dataset_2 = FindVariableFeatures(object = dataset_2,nfeatures = all_var_genes_num)
+  dataset_2_all_vargenes = VariableFeatures(dataset_2)
+  
+  dataset_2 = FindVariableFeatures(object = dataset_2,nfeatures = most_var_genes_num)
+  dataset_2_most_vargenes = VariableFeatures(dataset_2)
+  
+  dataset_2_most_vargenes = dataset_2_most_vargenes[dataset_2_most_vargenes %in% dataset_1_all_vargenes]
+  dataset_1_most_vargenes = dataset_1_most_vargenes[dataset_1_most_vargenes %in% dataset_2_all_vargenes]
+  
+  genes_lst = c(dataset_2_most_vargenes,dataset_1_most_vargenes)
+  genes_lst = unique(genes_lst) #remove duplicates
+  return(genes_lst)
+}
