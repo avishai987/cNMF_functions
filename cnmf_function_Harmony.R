@@ -177,7 +177,7 @@ merge_scores_with_adding <- function(score_1,score_2,z_score = F,min_max = F,sum
 #' @return OUTPUT_DESCRIPTION
 #' @export 
 
-combine_var_genes <- function(dataset_1, dataset_2, all_var_genes_num, most_var_genes_num) {
+combine_var_genes <- function(dataset_1, dataset_2, all_var_genes_num, most_var_genes_num,plot = F) {
   dataset_1 = FindVariableFeatures(object = dataset_1,nfeatures = all_var_genes_num)
   dataset_1_all_vargenes = VariableFeatures(dataset_1)
   dataset_1 = FindVariableFeatures(object = dataset_1,nfeatures = most_var_genes_num)
@@ -193,6 +193,10 @@ combine_var_genes <- function(dataset_1, dataset_2, all_var_genes_num, most_var_
   dataset_1_most_vargenes = dataset_1_most_vargenes[dataset_1_most_vargenes %in% dataset_2_all_vargenes]
   
   genes_lst = c(dataset_2_most_vargenes,dataset_1_most_vargenes)
+  grid.newpage()
+  draw.pairwise.venn(area1=length(dataset_1_most_vargenes), area2=length(dataset_2_most_vargenes),cross.area=intersect(dataset_1_most_vargenes,dataset_2_most_vargenes) %>% length(),
+                     category=c("xeno_most_vargenes","patients_most_vargenes"),fill=c("Red","Yellow"))
+  
   genes_lst = unique(genes_lst) #remove duplicates
   return(genes_lst)
 }
@@ -217,4 +221,20 @@ positive_genes <- function(dataset,num_of_cells) {
   }
   length(genes_lst)
   return(genes_lst)
+}
+
+#union programs (i.e all cell cycle programs). input example: groups_list = list(c(2,6),c(5,3,4),c(1))
+# will combine metagenes 2+6, 5+3+4,1
+union_programs <- function(groups_list,all_metagenes) {
+  unioned_metagenes = data.frame(row.names = rownames(all_metagenes)) #create final df 
+  for (group in groups_list) {
+    name =group %>% as.character() %>% paste(collapse = ".") #name of col, i.e "1.3"
+    name = paste0("metagene",name) #change to metagene1.3
+    col = all_metagenes[,group,drop=F] #take cols
+    if (ncol(col)!=1){col = rowMeans(col)} # mean if more than 1 metagenes
+    new_metagene  = data.frame(new =  col,row.names = rownames(all_metagenes))
+    names(new_metagene) = name #set name
+    unioned_metagenes = cbind(unioned_metagenes,new_metagene) # add to final df
+  }
+  return(unioned_metagenes)
 }
