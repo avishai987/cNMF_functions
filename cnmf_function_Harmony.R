@@ -224,12 +224,12 @@ positive_genes <- function(dataset,num_of_cells) {
 }
 
 #union programs (i.e all cell cycle programs). input example: groups_list = list(c(2,6),c(5,3,4),c(1))
-# will combine metagenes 2+6, 5+3+4,1
+# will combine metagenes 2+6, 5+3+4,1 in the df @all_metagenes
 union_programs <- function(groups_list,all_metagenes) {
   unioned_metagenes = data.frame(row.names = rownames(all_metagenes)) #create final df 
   for (group in groups_list) {
     name =group %>% as.character() %>% paste(collapse = ".") #name of col, i.e "1.3"
-    name = paste0("metagene",name) #change to metagene1.3
+    name = paste0("gep",name) #change to gep1.3
     col = all_metagenes[,group,drop=F] #take cols
     if (ncol(col)!=1){col = rowMeans(col)} # mean if more than 1 metagenes
     new_metagene  = data.frame(new =  col,row.names = rownames(all_metagenes))
