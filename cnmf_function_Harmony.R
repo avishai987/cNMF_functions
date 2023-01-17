@@ -16,16 +16,17 @@ program_assignment <- function(dataset,larger_by = 1,program_names) {
   dataset = AddMetaData(object = dataset,metadata = assignment_df,col.name = "program.assignment")
   return(dataset)
 }
-expression_mult <- function(gep_scores,dataset, top_genes = F,z_score = F,min_max = F,sum2one = F) {
+expression_mult<-function(gep_scores,dataset, top_genes = F,z_score = F,min_max = F,sum2one = F) {
   if (top_genes){ #for every metagene ,multiple only the top genes
     cell_usage = data.frame(row.names =colnames(dataset)) #create empty df to store results
     for (col_num in 1:ncol(gep_scores)) {
        top_200 = gep_scores %>% select(col_num) %>%  arrange(desc(gep_scores[col_num])) %>% head(200)  #take top 200 rows
        top_200 = top_200 %>% t() %>%  as.matrix()
        expression = dataset@assays$RNA@data %>% as.matrix()
-       expression = expression[rownames(expression) %in% colnames(top_200),]  #remove rows not in top_genes
-       top_200= top_200[,colnames(top_200) %in% rownames(expression)] #remove rows not in expression
-      
+       expression = expression[rownames(expression) %in% colnames(top_200),,drop=F]  #remove rows not in top_genes
+       top_200= top_200[,colnames(top_200) %in% rownames(expression),drop=F] #remove rows not in expression
+      expression = expression[match(colnames(top_200), rownames(expression)),] #order expression rows like gep
+
         my_usage = top_200%*%expression
         metagene = my_usage %>% t() %>% as.data.frame()
         cell_usage = cbind(cell_usage,metagene)
@@ -37,6 +38,7 @@ expression_mult <- function(gep_scores,dataset, top_genes = F,z_score = F,min_ma
     expression = dataset@assays$RNA@data %>% as.matrix()
     expression = expression[rownames(expression) %in% colnames(gep_scores),] #remove rows not in gep_scores
     gep_scores= gep_scores[,colnames(gep_scores) %in% rownames(expression)] #remove rows not in expression
+    expression = expression[match(colnames(gep_scores), rownames(expression)),] #order expression rows like gep
     
     cell_usage = gep_scores%*%expression #multiply 
     cell_usage = cell_usage %>% t() %>% as.data.frame()
