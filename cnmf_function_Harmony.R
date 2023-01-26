@@ -16,23 +16,47 @@ program_assignment <- function(dataset,larger_by = 1,program_names) {
   dataset = AddMetaData(object = dataset,metadata = assignment_df,col.name = "program.assignment")
   return(dataset)
 }
-expression_mult<-function(gep_scores,dataset, top_genes = F,z_score = F,min_max = F,sum2one = F) {
+expression_mult<-function(gep_scores,dataset, top_genes = F,max_genes = F, z_score = F,min_max = F,sum2one = F) {
   if (top_genes){ #for every metagene ,multiple only the top genes
     cell_usage = data.frame(row.names =colnames(dataset)) #create empty df to store results
     for (col_num in 1:ncol(gep_scores)) {
-       top_200 = gep_scores %>% select(col_num) %>%  arrange(desc(gep_scores[col_num])) %>% head(200)  #take top 200 rows
-       top_200 = top_200 %>% t() %>%  as.matrix()
-       expression = dataset@assays$RNA@data %>% as.matrix()
-       expression = expression[rownames(expression) %in% colnames(top_200),,drop=F]  #remove rows not in top_genes
-       top_200= top_200[,colnames(top_200) %in% rownames(expression),drop=F] #remove rows not in expression
+      top_200 = gep_scores %>% select(col_num) %>%  arrange(desc(gep_scores[col_num])) %>% head(200)  #take top 200 rows
+      top_200 = top_200 %>% t() %>%  as.matrix()
+      expression = dataset@assays$RNA@data %>% as.matrix()
+      expression = expression[rownames(expression) %in% colnames(top_200),,drop=F]  #remove rows not in top_genes
+      top_200= top_200[,colnames(top_200) %in% rownames(expression),drop=F] #remove rows not in expression
       expression = expression[match(colnames(top_200), rownames(expression)),] #order expression rows like gep
-
-        my_usage = top_200%*%expression
-        metagene = my_usage %>% t() %>% as.data.frame()
-        cell_usage = cbind(cell_usage,metagene)
+      
+      my_usage = top_200%*%expression
+      metagene = my_usage %>% t() %>% as.data.frame()
+      cell_usage = cbind(cell_usage,metagene)
     }
     cell_usage = cell_usage %>% setNames(colnames(gep_scores)) 
-
+    
+  }else if(max_genes){
+    require(NMF,quietly = T)
+    top_features = extractFeatures(object = gep_scores %>% data.matrix(),method ="max")
+    for (i in 1:length(top_features)) {
+      top_features[[i]]= rownames(gep_scores)[top_features[[i]]]
+    }
+    
+    cell_usage = data.frame(row.names =colnames(dataset)) #create empty df to store results
+    for (i in 1:ncol(gep_scores)) {
+      top = top_features[i] %>% unlist()
+      expression = dataset@assays$RNA@data %>% as.matrix()
+      top_df = gep_scores[rownames(gep_scores) %in% top,i,drop=F] %>% t() %>%  as.matrix()
+      
+      expression = expression[rownames(expression) %in% colnames(top_df),,drop=F]  #remove rows not in top_genes
+      top_df= top_df[,colnames(top_df) %in% rownames(expression),drop=F] #remove rows not in expression
+      
+      expression = expression[match(colnames(top_df), rownames(expression)),] #order expression rows like gep
+      my_usage = top_df%*%expression
+      metagene = my_usage %>% t() %>% as.data.frame()
+      cell_usage = cbind(cell_usage,metagene)
+    }
+    cell_usage = cell_usage %>% setNames(colnames(gep_scores)) 
+    
+    
   }else{
     gep_scores = gep_scores  %>% t() %>%  as.matrix()
     expression = dataset@assays$RNA@data %>% as.matrix()
@@ -56,7 +80,6 @@ expression_mult<-function(gep_scores,dataset, top_genes = F,z_score = F,min_max 
   
   return(cell_usage)
 }
-
 cell_percentage <- function(dataset,time.point_var) {
     data =FetchData(object = dataset,vars = c("program.assignment",time.point_var))
   data = data %>% dplyr::count(program.assignment, .[time.point_var]) %>%  dplyr::add_count(.[time.point_var], wt = n, name = "overall")%>% 
