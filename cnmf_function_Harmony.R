@@ -26,6 +26,8 @@ expression_mult<-function(gep_scores,dataset, top_genes = F,max_genes = F, z_sco
       expression = expression[rownames(expression) %in% colnames(top_200),,drop=F]  #remove rows not in top_genes
       top_200= top_200[,colnames(top_200) %in% rownames(expression),drop=F] #remove rows not in expression
       expression = expression[match(colnames(top_200), rownames(expression)),] #order expression rows like gep
+      expression = 2**expression #convert from log(tpm+1) to tpm
+      expression = expression-1
       
       my_usage = top_200%*%expression
       metagene = my_usage %>% t() %>% as.data.frame()
