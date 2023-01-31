@@ -104,8 +104,9 @@ sum2one <- function(df) {
     program_sum = sum(df[,col_num])
     norm_program = df[,col_num]/program_sum
     df[,col_num] = norm_program
-    return(df)
   }
+      return(df)
+
 }
 
 min_max_normalize <- function(x, na.rm = TRUE) {
