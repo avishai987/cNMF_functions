@@ -96,7 +96,9 @@ cell_percentage <- function(dataset,time.point_var) {
       scale_y_continuous(limits = c(0,1))   
       plt_list[[program_name]] = p
   }
-  gridExtra::grid.arrange(grobs = plt_list)
+  p = ggarrange(plotlist = plt_list )
+
+  return(p)
 }
 
 sum2one <- function(df) {
