@@ -16,17 +16,21 @@ program_assignment <- function(dataset,larger_by = 1,program_names) {
   dataset = AddMetaData(object = dataset,metadata = assignment_df,col.name = "program.assignment")
   return(dataset)
 }
-expression_mult<-function(gep_scores,dataset, top_genes = F,max_genes = F, z_score = F,min_max = F,sum2one = F) {
+expression_mult<-function(gep_scores,dataset, top_genes = F,max_genes = F, z_score = F,min_max = F,sum2one = F, hallmark_genes  = NULL) {
   if (top_genes){ #for every metagene ,multiple only the top genes
     cell_usage = data.frame(row.names =colnames(dataset)) #create empty df to store results
     for (col_num in 1:ncol(gep_scores)) {
       top_200 = gep_scores %>% select(col_num) %>%  arrange(desc(gep_scores[col_num])) %>% head(200)  #take top 200 rows
+      if (!is_null(hallmark_genes) ){ #intersect with genes from hallmark, i.e take only hypoxia genes
+        genes_in_hallmark = intersect(rownames(top_200),hallmark_genes[[col_num]])
+        top_200 = top_200[rownames(top_200) %in% genes_in_hallmark,,drop = F]
+      }
       top_200 = top_200 %>% t() %>%  as.matrix()
       expression = dataset@assays$RNA@data %>% as.matrix()
       expression = expression[rownames(expression) %in% colnames(top_200),,drop=F]  #remove rows not in top_genes
       top_200= top_200[,colnames(top_200) %in% rownames(expression),drop=F] #remove rows not in expression
       expression = expression[match(colnames(top_200), rownames(expression)),] #order expression rows like gep
-      expression = 2**expression #convert from log(tpm+1) to tpm
+      expression = 2**(expression) #convert from log(tpm+1) to tpm
       expression = expression-1
       
       my_usage = top_200%*%expression
