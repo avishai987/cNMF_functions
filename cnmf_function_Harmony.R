@@ -119,9 +119,6 @@ cell_percentage <- function(dataset,time.point_var, by_program = T, by_tp = F) {
 
 }
 
-cell_percentage = function(dataset,time.point_var) {
-
-}
 
 sum2one <- function(df) {
   for (col_num in 1:ncol(df)){
