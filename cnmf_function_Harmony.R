@@ -96,10 +96,10 @@ cell_percentage <- function(dataset,time.point_var) {
       scale_y_continuous(limits = c(0,1))   
       plt_list[[program_name]] = p
   }
-  p = ggarrange(plotlist = plt_list )
-
-  return(p)
+    p = ggarrange(plotlist = plt_list )
+    return(p)
 }
+
 
 sum2one <- function(df) {
   for (col_num in 1:ncol(df)){
