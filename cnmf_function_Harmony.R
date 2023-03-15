@@ -86,7 +86,7 @@ expression_mult<-function(gep_scores,dataset, top_genes = F,max_genes = F, z_sco
   
   return(cell_usage)
 }
-cell_percentage <- function(dataset,time.point_var, by_program = F, by_tp = F) {
+cell_percentage <- function(dataset,time.point_var, by_program = F, by_tp = F,return_data = F) {
   if(by_program){
       data =FetchData(object = dataset,vars = c("program.assignment",time.point_var))
       data = data %>% dplyr::count(program.assignment, .[time.point_var]) %>%  dplyr::add_count(program.assignment, wt = n, name = "overall")%>% 
@@ -118,7 +118,11 @@ cell_percentage <- function(dataset,time.point_var, by_program = F, by_tp = F) {
       plt_list[[tp]] = p
     }
     p = ggarrange(plotlist = plt_list)
+    if (return_data){
+      return(data)
+    }else{
     return(p)
+    }
   }
 
 }
