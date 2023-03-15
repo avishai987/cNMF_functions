@@ -82,24 +82,46 @@ expression_mult<-function(gep_scores,dataset, top_genes = F,max_genes = F, z_sco
   
   return(cell_usage)
 }
-cell_percentage <- function(dataset,time.point_var) {
-    data =FetchData(object = dataset,vars = c("program.assignment",time.point_var))
-  data = data %>% dplyr::count(program.assignment, .[time.point_var]) %>%  dplyr::add_count(program.assignment, wt = n, name = "overall")%>% 
-  mutate(proportion = n / overall)   
-  
-  plt_list = list()
-    time.point_var = ensym(time.point_var)
-  for (program_name in unique(data$program.assignment)) {
-    program_data = data[data$program.assignment == program_name,]
-    p = ggplot(data=program_data, aes(x=!!time.point_var, y=proportion)) +geom_bar(stat="identity")+ylab("precentage") +
-      ggtitle("program" %>% paste(program_data$program.assignment %>% unique() %>% as.character()))+
-      scale_y_continuous(limits = c(0,1))   
-      plt_list[[program_name]] = p
+cell_percentage <- function(dataset,time.point_var, by_program = T, by_tp = F) {
+  if(by_program){
+      data =FetchData(object = dataset,vars = c("program.assignment",time.point_var))
+      data = data %>% dplyr::count(program.assignment, .[time.point_var]) %>%  dplyr::add_count(program.assignment, wt = n, name = "overall")%>% 
+        mutate(proportion = n / overall)   
+      
+      plt_list = list()
+      time.point_var = ensym(time.point_var)
+      for (program_name in unique(data$program.assignment)) {
+        program_data = data[data$program.assignment == program_name,]
+        p = ggplot(data=program_data, aes(x=!!time.point_var, y=proportion)) +geom_bar(stat="identity")+ylab("precentage") +
+          ggtitle("program" %>% paste(program_data$program.assignment %>% unique() %>% as.character()))+
+          scale_y_continuous(limits = c(0,1))   
+        plt_list[[program_name]] = p
+      }
+      p = ggarrange(plotlist = plt_list )
+      return(p)
   }
-    p = ggarrange(plotlist = plt_list )
+  if( by_tp){
+    data =FetchData(object = dataset,vars = c("program.assignment",time.point_var))
+    data = data %>% dplyr::count(program.assignment, .[time.point_var]) %>%  dplyr::add_count(.[time.point_var], wt = n, name = "overall")%>% 
+      mutate(proportion = n / overall)   
+    
+    plt_list = list()
+    for (tp in unique(data[,time.point_var])) {
+      program_data = data[data[,time.point_var] == tp,]
+      p = ggplot(data=program_data, aes(x=program.assignment, y=proportion)) +geom_bar(stat="identity")+ylab("precentage") +
+        ggtitle(program_data[,time.point_var] %>% unique() %>% as.character())+
+        scale_y_continuous(limits = c(0,1))   
+      plt_list[[tp]] = p
+    }
+    p = ggarrange(plotlist = plt_list)
     return(p)
+  }
+
 }
 
+cell_percentage = function(dataset,time.point_var) {
+
+}
 
 sum2one <- function(df) {
   for (col_num in 1:ncol(df)){
