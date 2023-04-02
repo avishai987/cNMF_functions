@@ -16,11 +16,11 @@ program_assignment <- function(dataset,larger_by = 1,program_names) {
   dataset = AddMetaData(object = dataset,metadata = assignment_df,col.name = "program.assignment")
   return(dataset)
 }
-expression_mult<-function(gep_scores,dataset, top_genes = F,max_genes = F, z_score = F,min_max = F,sum2one = F, hallmark_genes  = NULL) {
+expression_mult = function(gep_scores,dataset, top_genes = F,max_genes = F, z_score = F,min_max = F,sum2one = F, hallmark_genes  = NULL,top_genes_num = 200) {
   if (top_genes){ #for every metagene ,multiple only the top genes
     cell_usage = data.frame(row.names =colnames(dataset)) #create empty df to store results
     for (col_num in 1:ncol(gep_scores)) {
-      top_200 = gep_scores %>% select(col_num) %>%  arrange(desc(gep_scores[col_num])) %>% head(200)  #take top 200 rows
+      top_200 = gep_scores %>% select(col_num) %>%  arrange(desc(gep_scores[col_num])) %>% head(top_genes_num)  #take top 200 rows
       if (!is_null(hallmark_genes) ){ #intersect with genes from hallmark, i.e take only hypoxia genes
         genes_in_hallmark = intersect(rownames(top_200),hallmark_genes[[col_num]])
         top_200 = top_200[rownames(top_200) %in% genes_in_hallmark,,drop = F]
@@ -86,6 +86,45 @@ expression_mult<-function(gep_scores,dataset, top_genes = F,max_genes = F, z_sco
   
   return(cell_usage)
 }
+
+
+cell_percentage = function(dataset,time.point_var, by_program = F, by_tp = F,x_order = NULL) {
+  if(by_program){
+    data =FetchData(object = dataset,vars = c("program.assignment",time.point_var))
+    data = data %>% dplyr::count(program.assignment, .[time.point_var]) %>%  dplyr::add_count(program.assignment, wt = n, name = "overall")%>% 
+      mutate(proportion = n / overall)   
+    
+    plt_list = list()
+    time.point_var = ensym(time.point_var)
+    for (program_name in unique(data$program.assignment)) {
+      program_data = data[data$program.assignment == program_name,]
+      p = ggplot(data=program_data, aes(x=!!time.point_var, y=proportion)) +geom_bar(stat="identity")+ylab("precentage") +
+        ggtitle("program" %>% paste(program_data$program.assignment %>% unique() %>% as.character()))+
+        scale_y_continuous(limits = c(0,1))  + scale_x_discrete(limits = x_order)
+      plt_list[[program_name]] = p
+    }
+    p = ggarrange(plotlist = plt_list )
+    return(p)
+  }
+  else if( by_tp){
+    data =FetchData(object = dataset,vars = c("program.assignment",time.point_var))
+    data = data %>% dplyr::count(program.assignment, .[time.point_var]) %>%  dplyr::add_count(.[time.point_var], wt = n, name = "overall")%>% 
+      mutate(proportion = n / overall)   
+    
+    plt_list = list()
+    for (tp in unique(data[,time.point_var])) {
+      program_data = data[data[,time.point_var] == tp,]
+      p = ggplot(data=program_data, aes(x=program.assignment, y=proportion)) +geom_bar(stat="identity")+ylab("precentage") +
+        ggtitle(program_data[,time.point_var] %>% unique() %>% as.character())+
+        scale_y_continuous(limits = c(0,1))   + scale_x_discrete(limits = x_order)
+      plt_list[[tp]] = p
+    }
+    p = ggarrange(plotlist = plt_list)
+    return(p)
+  }
+  
+}
+
 cell_percentage <- function(dataset,time.point_var, by_program = F, by_tp = F,return_data = F) {
   if(by_program){
       data =FetchData(object = dataset,vars = c("program.assignment",time.point_var))
