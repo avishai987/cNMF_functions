@@ -294,3 +294,54 @@ union_programs <- function(groups_list,all_metagenes) {
   }
   return(unioned_metagenes)
 }
+
+
+#' statisticly compare mean of hypoxia and TNFa metagenes
+#'
+#' @param dataset 
+#' @param time.point_var time point metadata name in dataset
+#' @param prefix adding to patient names i.e "model" result "model 1069"
+#' @param patient.ident_var patient id metadata name in dataset
+#' @param pre_on names of pre and on cells i.e c("OSI","NT")
+#'
+#' @return none
+#' @export
+#'
+#' @examples
+metagenes_mean_compare <- function(dataset,time.point_var,prefix = "",patient.ident_var,pre_on = c("OSI","NT")) {
+  
+  for (metegene in c("Hypoxia","TNFa")) {
+  #create data:
+      genes_by_tp = FetchData(object = dataset,vars = metegene) %>% rowSums() %>% as.data.frame() #mean expression
+      names(genes_by_tp)[1] = "Metagene_mean"
+      genes_by_tp = cbind(genes_by_tp,FetchData(object = dataset,vars = c(patient.ident_var,time.point_var))) # add id and time points
+      
+      
+      genes_by_tp_forPlot =  genes_by_tp %>% mutate(!!ensym(patient.ident_var) := paste(prefix,genes_by_tp[,patient.ident_var])) #add "model" before  each model/patient
+      
+      
+     fm <- as.formula(paste("Metagene_mean", "~", time.point_var)) #make formula to plot
+
+  #plot and split by patient:   
+     stat.test = compare_means(formula = fm ,data = genes_by_tp_forPlot,method = "t.test",group.by = patient.ident_var)%>% # Add pairwise comparisons p-value
+        dplyr::filter(group1 == pre_on[1] & group2 == pre_on[2])  #filter for pre vs on treatment only
+    
+      plt = ggboxplot(genes_by_tp_forPlot, x = time.point_var, y = "Metagene_mean", color = time.point_var) + #plot
+        stat_pvalue_manual(stat.test, label = "p = {p.adj}",y.position = 0.78)+grids()+  ylab(paste(metegene,"mean")) #add p value
+        plt = facet(plt, facet.by = patient.ident_var) #split by patients
+      
+      print_tab(plt = plt,title = c(metegene,"per patient")) 
+ 
+    #plot = without split by patient:   
+    stat.test = compare_means(formula = fm ,data = genes_by_tp_forPlot,comparisons = my_comparisons,method = "t.test")%>% 
+      dplyr::filter(group1 == pre_on[1] & group2 == pre_on[2]) # Add pairwise comparisons p-value
+    
+    plt = ggboxplot(genes_by_tp_forPlot, x = time.point_var, y = "Metagene_mean", color = time.point_var) +
+      stat_pvalue_manual(stat.test, label = "p = {p.adj}",y.position = 0.78)+grids()+  ylab(paste(metegene,"mean"))
+    
+  
+    print_tab(plt = plt,title = metegene)
+  }
+
+  
+}
