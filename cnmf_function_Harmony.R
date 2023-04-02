@@ -308,7 +308,7 @@ union_programs <- function(groups_list,all_metagenes) {
 #' @export
 #'
 #' @examples
-metagenes_mean_compare <- function(dataset,time.point_var,prefix = "",patient.ident_var,pre_on = c("OSI","NT")) {
+metagenes_mean_compare <- function(dataset,time.point_var,prefix = "",patient.ident_var,pre_on = c("OSI","NT"),axis.text.x = 11) {
   
   for (metegene in c("Hypoxia","TNFa")) {
   #create data:
@@ -318,8 +318,6 @@ metagenes_mean_compare <- function(dataset,time.point_var,prefix = "",patient.id
       
       
       genes_by_tp_forPlot =  genes_by_tp %>% mutate(!!ensym(patient.ident_var) := paste(prefix,genes_by_tp[,patient.ident_var])) #add "model" before  each model/patient
-      
-      
      fm <- as.formula(paste("Metagene_mean", "~", time.point_var)) #make formula to plot
 
   #plot and split by patient:   
@@ -327,8 +325,10 @@ metagenes_mean_compare <- function(dataset,time.point_var,prefix = "",patient.id
         dplyr::filter(group1 == pre_on[1] & group2 == pre_on[2])  #filter for pre vs on treatment only
     
       plt = ggboxplot(genes_by_tp_forPlot, x = time.point_var, y = "Metagene_mean", color = time.point_var) + #plot
-        stat_pvalue_manual(stat.test, label = "p = {p.adj}",y.position = 0.78)+grids()+  ylab(paste(metegene,"mean")) #add p value
-        plt = facet(plt, facet.by = patient.ident_var) #split by patients
+        stat_pvalue_manual(stat.test, label = "p = {p.adj}",y.position = 0.78)+grids()+  ylab(paste(metegene,"mean"))+ #add p value
+        theme(axis.text.x = element_text(size = axis.text.x))
+
+      plt = facet(plt, facet.by = patient.ident_var) #split by patients
       
       print_tab(plt = plt,title = c(metegene,"per patient")) 
  
