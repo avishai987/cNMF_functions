@@ -87,6 +87,26 @@ expression_mult = function(gep_scores,dataset, top_genes = F,max_genes = F, z_sc
   return(cell_usage)
 }
 
+#' create metagenes by expression and gep scores by:
+#' metagenes * gep = expression -> metagenes = (gep)-1* expression
+#' so (gep)-1 is the left inversion claculated by ginv
+#' @param gep_scores 
+#' @param dataset 
+#'
+#' @return
+#' @export
+#'
+#' @examples
+expression_inversion <- function(gep_scores,dataset) {
+      expression = dataset@assays$RNA@data %>% as.matrix()
+      expression = expression[rownames(expression) %in% rownames(gep_scores),,drop=F]  #remove rows not in top_genes
+      gep_scores = gep_scores[rownames(gep_scores) %in% rownames(expression),,drop=F]  #remove rows not in top_genes
+      expression = expression[match(rownames(gep_scores), rownames(expression)),] #order expression rows like gep
+      left_inversion = MASS::ginv(gep_scores)
+      res = left_inversion %*% expression
+      return(res)
+}
+
 
 cell_percentage = function(dataset,time.point_var, by_program = F, by_tp = F,x_order = NULL) {
   if(by_program){
