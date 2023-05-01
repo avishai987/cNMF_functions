@@ -367,43 +367,43 @@ metagenes_mean_compare <- function(dataset,time.point_var,prefix = "",patient.id
 }
 
 get_norm_counts = "def get_norm_counts(counts, tpm,high_variance_genes_filter): #from cnmf.py
-  import numpy as np
-  import scipy.sparse as sp
-  ## Subset out high-variance genes
-  norm_counts = counts[:, high_variance_genes_filter].copy()
-  
-  ## Scale genes to unit variance
-  if sp.issparse(tpm.X):
-    sc.pp.scale(norm_counts, zero_center=False)
-  if np.isnan(norm_counts.X.data).sum() > 0:
-    print('Warning NaNs in normalized counts matrix')                       
-  else:
-    norm_counts.X /= norm_counts.X.std(axis=0, ddof=1)
-  if np.isnan(norm_counts.X).sum().sum() > 0:
-    print('Warning NaNs in normalized counts matrix')                    
-  
-  
-  ## Check for any cells that have 0 counts of the overdispersed genes
-  zerocells = norm_counts.X.sum(axis=1)==0
-  if zerocells.sum()>0:
-    examples = norm_counts.obs.index[zerocells]
-  print('Warning: %d cells have zero counts of overdispersed genes. E.g. %s' % (zerocells.sum(), examples[0]))
-  print('Consensus step may not run when this is the case')
-  
-  return(norm_counts)"
+      import numpy as np
+      import scipy.sparse as sp
+      ## Subset out high-variance genes
+      norm_counts = counts[:, high_variance_genes_filter].copy()
+      
+      ## Scale genes to unit variance
+      if sp.issparse(tpm.X):
+        sc.pp.scale(norm_counts, zero_center=False)
+      if np.isnan(norm_counts.X.data).sum() > 0:
+        print('Warning NaNs in normalized counts matrix')                       
+      else:
+        norm_counts.X /= norm_counts.X.std(axis=0, ddof=1)
+      if np.isnan(norm_counts.X).sum().sum() > 0:
+        print('Warning NaNs in normalized counts matrix')                    
+      
+      
+      ## Check for any cells that have 0 counts of the overdispersed genes
+      zerocells = norm_counts.X.sum(axis=1)==0
+      if zerocells.sum()>0:
+        examples = norm_counts.obs.index[zerocells]
+      print('Warning: %d cells have zero counts of overdispersed genes. E.g. %s' % (zerocells.sum(), examples[0]))
+      print('Consensus step may not run when this is the case')
+      
+      return(norm_counts)"
 
 get_usage_from_score = "def get_usage_from_score(counts,tpm, genes,cnmf_obj):
-  import anndata as ad
-  import scanpy as sc
-  import numpy as np
-  from sklearn.decomposition import non_negative_factorization
-  import pandas as pd
-  counts_adata = ad.AnnData(counts)
-  tpm_adata = ad.AnnData(tpm)
-  norm_counts = get_norm_counts(counts=counts_adata,tpm=tpm_adata,high_variance_genes_filter=np.array(genes)) #norm counts as cnmf
-  spectra = cnmf_obj.get_median_spectra(k=4) #get score 
-  spectra = spectra[spectra.columns.intersection(genes)] #remove genes not in @genes
-  usage_by_calc,_,_ = non_negative_factorization(X=norm_counts.X, H = spectra.values, update_H=False,n_components = 4,max_iter=1000,init ='random')
-  usage_by_calc = pd.DataFrame(usage_by_calc, index=counts.index, columns=spectra.index) #insert to df+add names
-  usage_by_calc = usage_by_calc.div(usage_by_calc.sum(axis=1), axis=0) # sum rows to 1 
-  return(usage_by_calc)"
+      import anndata as ad
+      import scanpy as sc
+      import numpy as np
+      from sklearn.decomposition import non_negative_factorization
+      import pandas as pd
+      counts_adata = ad.AnnData(counts)
+      tpm_adata = ad.AnnData(tpm)
+      norm_counts = get_norm_counts(counts=counts_adata,tpm=tpm_adata,high_variance_genes_filter=np.array(genes)) #norm counts as cnmf
+      spectra = cnmf_obj.get_median_spectra(k=4) #get score 
+      spectra = spectra[spectra.columns.intersection(genes)] #remove genes not in @genes
+      usage_by_calc,_,_ = non_negative_factorization(X=norm_counts.X, H = spectra.values, update_H=False,n_components = 4,max_iter=1000,init ='random')
+      usage_by_calc = pd.DataFrame(usage_by_calc, index=counts.index, columns=spectra.index) #insert to df+add names
+      usage_by_calc = usage_by_calc.div(usage_by_calc.sum(axis=1), axis=0) # sum rows to 1 
+      return(usage_by_calc)"
