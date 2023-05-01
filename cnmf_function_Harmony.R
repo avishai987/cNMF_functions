@@ -369,7 +369,6 @@ metagenes_mean_compare <- function(dataset,time.point_var,prefix = "",patient.id
 get_norm_counts = "def get_norm_counts(counts, tpm,high_variance_genes_filter): #from cnmf.py
       import numpy as np
       import scipy.sparse as sp
-      ## Subset out high-variance genes
       norm_counts = counts[:, high_variance_genes_filter].copy()
       
       ## Scale genes to unit variance
@@ -387,8 +386,8 @@ get_norm_counts = "def get_norm_counts(counts, tpm,high_variance_genes_filter): 
       zerocells = norm_counts.X.sum(axis=1)==0
       if zerocells.sum()>0:
         examples = norm_counts.obs.index[zerocells]
-      print('Warning: %d cells have zero counts of overdispersed genes. E.g. %s' % (zerocells.sum(), examples[0]))
-      print('Consensus step may not run when this is the case')
+        print('Warning: %d cells have zero counts of overdispersed genes. E.g. %s' % (zerocells.sum(), examples[0]))
+        print('Consensus step may not run when this is the case')
       
       return(norm_counts)"
 
