@@ -391,7 +391,7 @@ get_norm_counts = "def get_norm_counts(counts, tpm,high_variance_genes_filter): 
       
       return(norm_counts)"
 
-get_usage_from_score = "def get_usage_from_score(counts,tpm, genes,cnmf_obj):
+get_usage_from_score = "def get_usage_from_score(counts,tpm, genes,cnmf_obj,k):
       import anndata as ad
       import scanpy as sc
       import numpy as np
@@ -402,7 +402,7 @@ get_usage_from_score = "def get_usage_from_score(counts,tpm, genes,cnmf_obj):
       norm_counts = get_norm_counts(counts=counts_adata,tpm=tpm_adata,high_variance_genes_filter=np.array(genes)) #norm counts as cnmf
       spectra = cnmf_obj.get_median_spectra(k=4) #get score 
       spectra = spectra[spectra.columns.intersection(genes)] #remove genes not in @genes
-      usage_by_calc,_,_ = non_negative_factorization(X=norm_counts.X, H = spectra.values, update_H=False,n_components = 4,max_iter=1000,init ='random')
+      usage_by_calc,_,_ = non_negative_factorization(X=norm_counts.X, H = spectra.values, update_H=False,n_components = k,max_iter=1000,init ='random')
       usage_by_calc = pd.DataFrame(usage_by_calc, index=counts.index, columns=spectra.index) #insert to df+add names
       usage_by_calc = usage_by_calc.div(usage_by_calc.sum(axis=1), axis=0) # sum rows to 1 
       return(usage_by_calc)"
