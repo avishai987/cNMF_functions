@@ -391,7 +391,8 @@ get_norm_counts = "def get_norm_counts(counts, tpm,high_variance_genes_filter): 
       
       return(norm_counts)"
 
-get_usage_from_score = "def get_usage_from_score(counts,tpm, genes,cnmf_obj,k):
+get_usage_from_score = 
+"def get_usage_from_score(counts,tpm, genes,cnmf_obj,k):
       import anndata as ad
       import scanpy as sc
       import numpy as np
