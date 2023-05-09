@@ -391,6 +391,7 @@ get_norm_counts = "def get_norm_counts(counts, tpm,high_variance_genes_filter): 
       
       return(norm_counts)"
 
+#Calculate usage matrix like cNMF, with any expression matrix
 get_usage_from_score = 
 "def get_usage_from_score(counts,tpm, genes,cnmf_obj,k):
       import anndata as ad
@@ -400,10 +401,60 @@ get_usage_from_score =
       import pandas as pd
       counts_adata = ad.AnnData(counts)
       tpm_adata = ad.AnnData(tpm)
-      norm_counts = get_norm_counts(counts=counts_adata,tpm=tpm_adata,high_variance_genes_filter=np.array(genes)) #norm counts as cnmf
+      norm_counts = get_norm_counts(counts=counts_adata,tpm=tpm_adata,high_variance_genes_filter=np.array(genes)) #norm counts like cnmf
       spectra = cnmf_obj.get_median_spectra(k=k) #get score 
       spectra = spectra[spectra.columns.intersection(genes)] #remove genes not in @genes
+      spectra = spectra.T.reindex(norm_counts.to_df().columns).T #reorder spectra genes like norm_counts
+      
       usage_by_calc,_,_ = non_negative_factorization(X=norm_counts.X, H = spectra.values, update_H=False,n_components = k,max_iter=1000,init ='random')
       usage_by_calc = pd.DataFrame(usage_by_calc, index=counts.index, columns=spectra.index) #insert to df+add names
       usage_by_calc = usage_by_calc.div(usage_by_calc.sum(axis=1), axis=0) # sum rows to 1 
       return(usage_by_calc)"
+
+#add this to cnmf.py to get median spectra score from cnmf object
+# def get_median_spectra(self, k, density_threshold=0.5, local_neighborhood_size = 0.30,show_clustering = True,
+#                        skip_density_and_return_after_stats = False, close_clustergram_fig=False,
+#                        refit_usage=True):
+#   merged_spectra = load_df_from_npz(self.paths['merged_spectra']%k)
+# norm_counts = sc.read(self.paths['normalized_counts'])
+# density_threshold_str = str(density_threshold)
+# if skip_density_and_return_after_stats:
+#   density_threshold_str = '2'
+# density_threshold_repl = density_threshold_str.replace('.', '_')
+# n_neighbors = int(local_neighborhood_size * merged_spectra.shape[0]/k)
+# 
+# # Rescale topics such to length of 1.
+# l2_spectra = (merged_spectra.T/np.sqrt((merged_spectra**2).sum(axis=1))).T
+# 
+# if not skip_density_and_return_after_stats:
+#   # Compute the local density matrix (if not previously cached)
+#   topics_dist = None
+# if os.path.isfile(self.paths['local_density_cache'] % k):
+#   local_density = load_df_from_npz(self.paths['local_density_cache'] % k)
+# else:
+#   #   first find the full distance matrix
+#   topics_dist = euclidean_distances(l2_spectra.values)
+# #   partition based on the first n neighbors
+# partitioning_order  = np.argpartition(topics_dist, n_neighbors+1)[:, :n_neighbors+1]
+# #   find the mean over those n_neighbors (excluding self, which has a distance of 0)
+# distance_to_nearest_neighbors = topics_dist[np.arange(topics_dist.shape[0])[:, None], partitioning_order]
+# local_density = pd.DataFrame(distance_to_nearest_neighbors.sum(1)/(n_neighbors),
+#                              columns=['local_density'],
+#                              index=l2_spectra.index)
+# save_df_to_npz(local_density, self.paths['local_density_cache'] % k)
+# del(partitioning_order)
+# del(distance_to_nearest_neighbors)
+# 
+# density_filter = local_density.iloc[:, 0] < density_threshold
+# l2_spectra = l2_spectra.loc[density_filter, :]
+# 
+# kmeans_model = KMeans(n_clusters=k, n_init=10, random_state=1)
+# kmeans_model.fit(l2_spectra)
+# kmeans_cluster_labels = pd.Series(kmeans_model.labels_+1, index=l2_spectra.index)
+# 
+# # Find median usage for each gene across cluster
+# median_spectra = l2_spectra.groupby(kmeans_cluster_labels).median()
+# 
+# # Normalize median spectra to probability distributions.
+# median_spectra = (median_spectra.T/median_spectra.sum(1)).T
+# return (median_spectra)
