@@ -411,6 +411,13 @@ get_usage_from_score =
       usage_by_calc = usage_by_calc.div(usage_by_calc.sum(axis=1), axis=0) # sum rows to 1 
       return(usage_by_calc)"
 
+compute_tpm = 
+  "def compute_tpm(input_counts):
+    tpm = input_counts.copy()
+    sc.pp.normalize_per_cell(tpm, counts_per_cell_after=1e6)
+    return(tpm)"
+
+
 #add this to cnmf.py to get median spectra score from cnmf object
 # def get_median_spectra(self, k, density_threshold=0.5, local_neighborhood_size = 0.30,show_clustering = True,
 #                        skip_density_and_return_after_stats = False, close_clustergram_fig=False,
