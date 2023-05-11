@@ -328,7 +328,7 @@ union_programs <- function(groups_list,all_metagenes) {
 #' @export
 #'
 #' @examples
-metagenes_mean_compare <- function(dataset,time.point_var,prefix = "",patient.ident_var,pre_on = c("OSI","NT"),axis.text.x = 11) {
+metagenes_mean_compare <- function(dataset,time.point_var,prefix = "",patient.ident_var,pre_on = c("OSI","NT"),axis.text.x = 11,test = "t.test") {
   
   for (metegene in c("Hypoxia","TNFa")) {
   #create data:
@@ -341,7 +341,7 @@ metagenes_mean_compare <- function(dataset,time.point_var,prefix = "",patient.id
      fm <- as.formula(paste("Metagene_mean", "~", time.point_var)) #make formula to plot
 
   #plot and split by patient:   
-     stat.test = compare_means(formula = fm ,data = genes_by_tp_forPlot,method = "t.test",group.by = patient.ident_var)%>% # Add pairwise comparisons p-value
+     stat.test = compare_means(formula = fm ,data = genes_by_tp_forPlot,method = test,group.by = patient.ident_var)%>% # Add pairwise comparisons p-value
         dplyr::filter(group1 == pre_on[1] & group2 == pre_on[2])  #filter for pre vs on treatment only
     
       plt = ggboxplot(genes_by_tp_forPlot, x = time.point_var, y = "Metagene_mean", color = time.point_var) + #plot
@@ -353,7 +353,7 @@ metagenes_mean_compare <- function(dataset,time.point_var,prefix = "",patient.id
       print_tab(plt = plt,title = c(metegene,"per patient")) 
  
     #plot = without split by patient:   
-    stat.test = compare_means(formula = fm ,data = genes_by_tp_forPlot,comparisons = my_comparisons,method = "t.test")%>% 
+    stat.test = compare_means(formula = fm ,data = genes_by_tp_forPlot,comparisons = my_comparisons,method = test)%>% 
       dplyr::filter(group1 == pre_on[1] & group2 == pre_on[2]) # Add pairwise comparisons p-value
     
     plt = ggboxplot(genes_by_tp_forPlot, x = time.point_var, y = "Metagene_mean", color = time.point_var) +
@@ -414,7 +414,7 @@ get_usage_from_score =
 compute_tpm = 
   "def compute_tpm(input_counts):
     tpm = input_counts.copy()
-    sc.pp.normalize_per_cell(tpm, counts_per_cell_after=1e6)
+    sc.pp.normalize_per_cell(tpm, counts_per_cell_after=1e6,copy=True)
     return(tpm)"
 
 
