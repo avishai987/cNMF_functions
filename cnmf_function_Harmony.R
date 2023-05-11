@@ -316,7 +316,7 @@ union_programs <- function(groups_list,all_metagenes) {
 }
 
 
-#' statisticly compare mean of hypoxia and TNFa metagenes
+#' statistically compare mean of hypoxia  TNFa and cel cycle  metagenes
 #'
 #' @param dataset 
 #' @param time.point_var time point metadata name in dataset
@@ -328,30 +328,30 @@ union_programs <- function(groups_list,all_metagenes) {
 #' @export
 #'
 #' @examples
-metagenes_mean_compare <- function(dataset,time.point_var,prefix = "",patient.ident_var,pre_on = c("OSI","NT"),axis.text.x = 11,test = "t.test") {
+metagenes_mean_compare <- function(dataset,time.point_var,prefix = "",patient.ident_var,pre_on = c("OSI","NT"),axis.text.x = 11,test = "t.test", programs = c("Hypoxia","TNFa","Cell_cycle")) {
   
-  for (metegene in c("Hypoxia","TNFa")) {
-  #create data:
-      genes_by_tp = FetchData(object = dataset,vars = metegene) %>% rowSums() %>% as.data.frame() #mean expression
-      names(genes_by_tp)[1] = "Metagene_mean"
-      genes_by_tp = cbind(genes_by_tp,FetchData(object = dataset,vars = c(patient.ident_var,time.point_var))) # add id and time points
-      
-      
-      genes_by_tp_forPlot =  genes_by_tp %>% mutate(!!ensym(patient.ident_var) := paste(prefix,genes_by_tp[,patient.ident_var])) #add "model" before  each model/patient
-     fm <- as.formula(paste("Metagene_mean", "~", time.point_var)) #make formula to plot
-
-  #plot and split by patient:   
-     stat.test = compare_means(formula = fm ,data = genes_by_tp_forPlot,method = test,group.by = patient.ident_var)%>% # Add pairwise comparisons p-value
-        dplyr::filter(group1 == pre_on[1] & group2 == pre_on[2])  #filter for pre vs on treatment only
+  for (metegene in programs) {
+    #create data:
+    genes_by_tp = FetchData(object = dataset,vars = metegene) %>% rowSums() %>% as.data.frame() #mean expression
+    names(genes_by_tp)[1] = "Metagene_mean"
+    genes_by_tp = cbind(genes_by_tp,FetchData(object = dataset,vars = c(patient.ident_var,time.point_var))) # add id and time points
     
-      plt = ggboxplot(genes_by_tp_forPlot, x = time.point_var, y = "Metagene_mean", color = time.point_var) + #plot
-        stat_pvalue_manual(stat.test, label = "p = {p.adj}",y.position = 0.78)+grids()+  ylab(paste(metegene,"mean"))+ #add p value
-        theme(axis.text.x = element_text(size = axis.text.x))
-
-      plt = facet(plt, facet.by = patient.ident_var) #split by patients
-      
-      print_tab(plt = plt,title = c(metegene,"per patient")) 
- 
+    
+    genes_by_tp_forPlot =  genes_by_tp %>% mutate(!!ensym(patient.ident_var) := paste(prefix,genes_by_tp[,patient.ident_var])) #add "model" before  each model/patient
+    fm <- as.formula(paste("Metagene_mean", "~", time.point_var)) #make formula to plot
+    
+    #plot and split by patient:   
+    stat.test = compare_means(formula = fm ,data = genes_by_tp_forPlot,method = test,group.by = patient.ident_var)%>% # Add pairwise comparisons p-value
+      dplyr::filter(group1 == pre_on[1] & group2 == pre_on[2])  #filter for pre vs on treatment only
+    
+    plt = ggboxplot(genes_by_tp_forPlot, x = time.point_var, y = "Metagene_mean", color = time.point_var) + #plot
+      stat_pvalue_manual(stat.test, label = "p = {p.adj}",y.position = 0.78)+grids()+  ylab(paste(metegene,"mean"))+ #add p value
+      theme(axis.text.x = element_text(size = axis.text.x))
+    
+    plt = facet(plt, facet.by = patient.ident_var) #split by patients
+    
+    print_tab(plt = plt,title = c(metegene,"per patient")) 
+    
     #plot = without split by patient:   
     stat.test = compare_means(formula = fm ,data = genes_by_tp_forPlot,comparisons = my_comparisons,method = test)%>% 
       dplyr::filter(group1 == pre_on[1] & group2 == pre_on[2]) # Add pairwise comparisons p-value
@@ -359,10 +359,10 @@ metagenes_mean_compare <- function(dataset,time.point_var,prefix = "",patient.id
     plt = ggboxplot(genes_by_tp_forPlot, x = time.point_var, y = "Metagene_mean", color = time.point_var) +
       stat_pvalue_manual(stat.test, label = "p = {p.adj}",y.position = 0.78)+grids()+  ylab(paste(metegene,"mean"))
     
-  
+    
     print_tab(plt = plt,title = metegene)
   }
-
+  
   
 }
 
