@@ -345,19 +345,27 @@ metagenes_mean_compare <- function(dataset,time.point_var,prefix = "",patient.id
       dplyr::filter(group1 == pre_on[1] & group2 == pre_on[2])  #filter for pre vs on treatment only
     
     plt = ggboxplot(genes_by_tp_forPlot, x = time.point_var, y = "Metagene_mean", color = time.point_var) + #plot
-      stat_pvalue_manual(stat.test, label = "p = {p.adj}",y.position = 0.78)+grids()+  ylab(paste(metegene,"mean"))+ #add p value
-      theme(axis.text.x = element_text(size = axis.text.x))
+      stat_pvalue_manual(stat.test, label = "p = {p.adj}",  #add p value
+                         y.position = max(genes_by_tp_forPlot$Metagene_mean))+ # set position at the top value
+      grids()+  
+      ylab(paste(metegene,"mean"))+
+      theme(axis.text.x = element_text(size = axis.text.x))+
+      ylim(0, max(genes_by_tp_forPlot$Metagene_mean)*1.2) # extend y axis to show p value
     
     plt = facet(plt, facet.by = patient.ident_var) #split by patients
-    
     print_tab(plt = plt,title = c(metegene,"per patient")) 
+    
     
     #plot = without split by patient:   
     stat.test = compare_means(formula = fm ,data = genes_by_tp_forPlot,comparisons = my_comparisons,method = test)%>% 
       dplyr::filter(group1 == pre_on[1] & group2 == pre_on[2]) # Add pairwise comparisons p-value
     
     plt = ggboxplot(genes_by_tp_forPlot, x = time.point_var, y = "Metagene_mean", color = time.point_var) +
-      stat_pvalue_manual(stat.test, label = "p = {p.adj}",y.position = 0.78)+grids()+  ylab(paste(metegene,"mean"))
+      stat_pvalue_manual(stat.test, label = "p = {p.adj}",  #add p value
+                         y.position = max(genes_by_tp_forPlot$Metagene_mean))+ # set position at the top value
+      grids()+  
+      ylab(paste(metegene,"mean"))+
+      ylim(0, max(genes_by_tp_forPlot$Metagene_mean)*1.2) # extend y axis to show p value
     
     
     print_tab(plt = plt,title = metegene)
