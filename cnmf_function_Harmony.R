@@ -393,7 +393,7 @@ get_norm_counts = "def get_norm_counts(counts, tpm,high_variance_genes_filter): 
 
 #Calculate usage matrix like cNMF, with any expression matrix
 get_usage_from_score = 
-"def get_usage_from_score(counts,tpm, genes,cnmf_obj,k):
+"def get_usage_from_score(counts,tpm, genes,cnmf_obj,k, sumTo1 = True):
       import anndata as ad
       import scanpy as sc
       import numpy as np
@@ -408,7 +408,8 @@ get_usage_from_score =
       
       usage_by_calc,_,_ = non_negative_factorization(X=norm_counts.X, H = spectra.values, update_H=False,n_components = k,max_iter=1000,init ='random')
       usage_by_calc = pd.DataFrame(usage_by_calc, index=counts.index, columns=spectra.index) #insert to df+add names
-      usage_by_calc = usage_by_calc.div(usage_by_calc.sum(axis=1), axis=0) # sum rows to 1
+      if(sumTo1):
+          usage_by_calc = usage_by_calc.div(usage_by_calc.sum(axis=1), axis=0) # sum rows to 1
       reorder = usage_by_calc.sum(axis=0).sort_values(ascending=False)
       usage_by_calc = usage_by_calc.loc[:, reorder.index]
       return(usage_by_calc)"
