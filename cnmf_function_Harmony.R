@@ -409,8 +409,9 @@ get_usage_from_score =
       usage_by_calc,_,_ = non_negative_factorization(X=norm_counts.X, H = spectra.values, update_H=False,n_components = k,max_iter=1000,init ='random')
       usage_by_calc = pd.DataFrame(usage_by_calc, index=counts.index, columns=spectra.index) #insert to df+add names
       if(sumTo1):
-          usage_by_calc = usage_by_calc.div(usage_by_calc.sum(axis=1), axis=0) # sum rows to 1
-      reorder = usage_by_calc.sum(axis=0).sort_values(ascending=False)
+          usage_by_calc = usage_by_calc.div(usage_by_calc.sum(axis=1), axis=0) # sum rows to 1 and assign to main df
+      usage_by_calc_sumTo1 = usage_by_calc.div(usage_by_calc.sum(axis=1), axis=0) # sum rows to 1
+      reorder = usage_by_calc_sumTo1.sum(axis=0).sort_values(ascending=False) #reorder after sum to 1
       usage_by_calc = usage_by_calc.loc[:, reorder.index]
       return(usage_by_calc)"
 
