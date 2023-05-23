@@ -420,6 +420,9 @@ compute_tpm =
     sc.pp.normalize_per_cell(tpm, counts_per_cell_after=1e6,copy=True)
     return(tpm)"
 
+py_run_string(code = get_norm_counts)
+py_run_string(code = get_usage_from_score)
+py_run_string(code = compute_tpm)
 
 #add this to cnmf.py to get median spectra score from cnmf object
 # def get_median_spectra(self, k, density_threshold=0.5, local_neighborhood_size = 0.30,show_clustering = True,
