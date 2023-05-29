@@ -412,6 +412,7 @@ get_usage_from_score =
       norm_counts = get_norm_counts(counts=counts_adata,tpm=tpm_adata,high_variance_genes_filter=np.array(genes)) #norm counts like cnmf
       spectra = cnmf_obj.get_median_spectra(k=k) #get score 
       spectra = spectra[spectra.columns.intersection(genes)] #remove genes not in @genes
+      norm_counts = norm_counts[:, spectra.columns].copy() #remove genes not in spectra
       spectra = spectra.T.reindex(norm_counts.to_df().columns).T #reorder spectra genes like norm_counts
       
       usage_by_calc,_,_ = non_negative_factorization(X=norm_counts.X, H = spectra.values, update_H=False,n_components = k,max_iter=1000,init ='random')
