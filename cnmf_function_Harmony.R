@@ -299,11 +299,15 @@ positive_genes <- function(dataset,num_of_cells) {
   return(genes_lst)
 }
 
-#union programs (i.e all cell cycle programs). input example: groups_list = list(c(2,6),c(5,3,4),c(1))
-# will combine metagenes 2+6, 5+3+4,1 in the df @all_metagenes
+#union programs (i.e all cell cycle programs). input example: groups_list = c(5,3,4)
+# will combine metagenes 5+3+4 in the df @all_metagenes
 union_programs <- function(groups_list,all_metagenes) {
+  all_programs = as.list(1:ncol(all_metagenes)) # create list of all programs
+  all_programs = all_programs[!all_programs %in% groups_list] # remove groups that wil be combined
+  all_programs[["cobined"]] <- groups_list # add combined groups
+  
   unioned_metagenes = data.frame(row.names = rownames(all_metagenes)) #create final df 
-  for (group in groups_list) {
+  for (group in all_programs) {
     name =group %>% as.character() %>% paste(collapse = ".") #name of col, i.e "1.3"
     name = paste0("gep",name) #change to gep1.3
     col = all_metagenes[,group,drop=F] #take cols
