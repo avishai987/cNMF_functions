@@ -378,6 +378,10 @@ metagenes_mean_compare <- function(dataset,time.point_var,prefix = "",patient.id
   
 }
 
+# These functions are aim to calculate to usage, but with other count matrix. usage usually calculated with: usage = NMF(counts,gep_scores), so here we can make it with any 
+# count matrix. This is good for the Harmony case, when we want to calculate gep with the corrected values, but infer the usage based on the original count matrix
+# so we will be sure the Harmony corrrection is not creating bias on the usage. 
+
 get_norm_counts = "def get_norm_counts(counts, tpm,high_variance_genes_filter): #from cnmf.py
       import numpy as np
       import scipy.sparse as sp
@@ -405,7 +409,7 @@ get_norm_counts = "def get_norm_counts(counts, tpm,high_variance_genes_filter): 
 
 #Calculate usage matrix like cNMF, with any expression matrix
 get_usage_from_score = 
-"def get_usage_from_score(counts,tpm, genes,cnmf_obj,k, sumTo1 = True):
+"def get_usage_from_score(counts,tpm, genes,cnmf_obj,k, sumTo1 = True): #based on 'consensus' method
       import anndata as ad
       import scanpy as sc
       import numpy as np
@@ -413,30 +417,44 @@ get_usage_from_score =
       import pandas as pd
       counts_adata = ad.AnnData(counts)
       tpm_adata = ad.AnnData(tpm)
+      
+      #get matrices
       norm_counts = get_norm_counts(counts=counts_adata,tpm=tpm_adata,high_variance_genes_filter=np.array(genes)) #norm counts like cnmf
-      spectra = cnmf_obj.get_median_spectra(k=k) #get score 
-      spectra = spectra[spectra.columns.intersection(genes)] #remove genes not in @genes
+      spectra_original = cnmf_obj.get_median_spectra(k=k) #get score 
+      
+      # filter 
+      spectra = spectra_original[spectra_original.columns.intersection(genes)] #remove genes not in @genes
       norm_counts = norm_counts[:, spectra.columns].copy() #remove genes not in spectra
       spectra = spectra.T.reindex(norm_counts.to_df().columns).T #reorder spectra genes like norm_counts
       
+      # calculate usage
       usage_by_calc,_,_ = non_negative_factorization(X=norm_counts.X, H = spectra.values, update_H=False,n_components = k,max_iter=1000,init ='random')
       usage_by_calc = pd.DataFrame(usage_by_calc, index=counts.index, columns=spectra.index) #insert to df+add names
+      
+      #normalize
       if(sumTo1):
           usage_by_calc = usage_by_calc.div(usage_by_calc.sum(axis=1), axis=0) # sum rows to 1 and assign to main df
-      usage_by_calc_sumTo1 = usage_by_calc.div(usage_by_calc.sum(axis=1), axis=0) # sum rows to 1
-      reorder = usage_by_calc_sumTo1.sum(axis=0).sort_values(ascending=False) #reorder after sum to 1
+      
+      # reorder
+        # get original order
+      original_norm_counts = sc.read(cnmf_obj.paths['normalized_counts'])
+      usage_by_calc_original,_,_ = non_negative_factorization(X=original_norm_counts.X, H = spectra_original.values, update_H=False,n_components = k,max_iter=1000,init ='random')
+      usage_by_calc_original = pd.DataFrame(usage_by_calc_original, index=original_norm_counts.obs.index, columns=spectra_original.index)  
+      norm_original_usages =usage_by_calc_original.div(usage_by_calc_original.sum(axis=1), axis=0)      
+      reorder = norm_original_usages.sum(axis=0).sort_values(ascending=False)
+        #apply
       usage_by_calc = usage_by_calc.loc[:, reorder.index]
       return(usage_by_calc)"
 
 compute_tpm = 
-  "def compute_tpm(input_counts):
+  "def compute_tpm(input_counts): #from cnmf.py
     tpm = input_counts.copy()
     sc.pp.normalize_per_cell(tpm, counts_per_cell_after=1e6,copy=True)
     return(tpm)"
 
-py_run_string(code = get_norm_counts)
-py_run_string(code = get_usage_from_score)
-py_run_string(code = compute_tpm)
+py_run_string(code = get_norm_counts) #load function to python
+py_run_string(code = get_usage_from_score) #load function to python
+py_run_string(code = compute_tpm) #load function to python
 
 #add this to cnmf.py to get median spectra score from cnmf object
 # def get_median_spectra(self, k, density_threshold=0.5, local_neighborhood_size = 0.30,show_clustering = True,
