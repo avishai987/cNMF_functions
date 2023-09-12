@@ -16,6 +16,7 @@ program_assignment <- function(dataset,larger_by = 1,program_names) {
   dataset = AddMetaData(object = dataset,metadata = assignment_df,col.name = "program.assignment")
   return(dataset)
 }
+
 expression_mult = function(gep_scores,dataset, top_genes = F,max_genes = F, z_score = F,min_max = F,sum2one = F, hallmark_genes  = NULL,top_genes_num = 200) {
   if (top_genes){ #for every metagene ,multiple only the top genes
     cell_usage = data.frame(row.names =colnames(dataset)) #create empty df to store results
@@ -320,7 +321,7 @@ union_programs <- function(groups_list,all_metagenes) {
 }
 
 
-#' statistically compare mean of hypoxia  TNFa and cel cycle  metagenes
+#' statistically compare mean of metagenes
 #'
 #' @param dataset 
 #' @param time.point_var time point metadata name in dataset
@@ -380,7 +381,7 @@ metagenes_mean_compare <- function(dataset,time.point_var,prefix = "",patient.id
 
 # These functions are aim to calculate to usage, but with other count matrix. usage usually calculated with: usage = NMF(counts,gep_scores), so here we can make it with any 
 # count matrix. This is good for the Harmony case, when we want to calculate gep with the corrected values, but infer the usage based on the original count matrix
-# so we will be sure the Harmony corrrection is not creating bias on the usage. 
+# so we will be sure the Harmony correction is not creating bias on the usage. 
 
 get_norm_counts = "def get_norm_counts(counts, tpm,high_variance_genes_filter): #from cnmf.py
       import numpy as np
