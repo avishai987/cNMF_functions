@@ -104,7 +104,7 @@ union_programs <- function(groups_list,all_metagenes) {
 #' @export
 #'
 #' @examples
-metagenes_mean_compare <- function(dataset,time.point_var,prefix = "",patient.ident_var,pre_on = c("OSI","NT"),axis.text.x = 11,test = "t.test", programs = c("Hypoxia","TNFa","Cell_cycle")) {
+metagenes_mean_compare <- function(dataset,time.point_var,prefix = "",patient.ident_var,pre_on = c("OSI","NT"),axis.text.x = 11,test = "t.test", programs = c("Hypoxia","TNFa","Cell_cycle"), with_split = T, without_split = T){
   
   for (metegene in programs) {
     #create data:
@@ -132,19 +132,22 @@ metagenes_mean_compare <- function(dataset,time.point_var,prefix = "",patient.id
     print_tab(plt = plt,title = c(metegene,"per patient")) 
     
     
-    #plot = without split by patient:   
-    stat.test = compare_means(formula = fm ,data = genes_by_tp_forPlot,comparisons = my_comparisons,method = test)%>% 
-      dplyr::filter(group1 == pre_on[1] & group2 == pre_on[2]) # Add pairwise comparisons p-value
+    #plot = without split by patient:
+    if(without_split){
+      stat.test = compare_means(formula = fm ,data = genes_by_tp_forPlot,comparisons = my_comparisons,method = test)%>% 
+        dplyr::filter(group1 == pre_on[1] & group2 == pre_on[2]) # Add pairwise comparisons p-value
+      
+      plt = ggboxplot(genes_by_tp_forPlot, x = time.point_var, y = "Metagene_mean", color = time.point_var) +
+        stat_pvalue_manual(stat.test, label = "p = {p.adj}",  #add p value
+                           y.position = max(genes_by_tp_forPlot$Metagene_mean))+ # set position at the top value
+        grids()+  
+        ylab(paste(metegene,"mean"))+
+        ylim(0, max(genes_by_tp_forPlot$Metagene_mean)*1.2) # extend y axis to show p value
+      
+      
+      print_tab(plt = plt,title = metegene)
+    }
     
-    plt = ggboxplot(genes_by_tp_forPlot, x = time.point_var, y = "Metagene_mean", color = time.point_var) +
-      stat_pvalue_manual(stat.test, label = "p = {p.adj}",  #add p value
-                         y.position = max(genes_by_tp_forPlot$Metagene_mean))+ # set position at the top value
-      grids()+  
-      ylab(paste(metegene,"mean"))+
-      ylim(0, max(genes_by_tp_forPlot$Metagene_mean)*1.2) # extend y axis to show p value
-    
-    
-    print_tab(plt = plt,title = metegene)
   }
   
   
