@@ -184,7 +184,7 @@ get_norm_counts = "def get_norm_counts(counts, tpm,high_variance_genes_filter): 
 
 #Calculate usage matrix like cNMF, with any expression matrix
 get_usage_from_score = 
-  "def get_usage_from_score(counts,tpm, genes,cnmf_obj,k, sumTo1 = True): #based on 'consensus' method
+  "def get_usage_from_score(counts,tpm, genes,cnmf_obj,k, sumTo1 = True,do_norm_counts = True): #based on 'consensus' method
       import anndata as ad
       import scanpy as sc
       import numpy as np
@@ -194,7 +194,10 @@ get_usage_from_score =
       tpm_adata = ad.AnnData(tpm)
       
       #get matrices
-      norm_counts = get_norm_counts(counts=counts_adata,tpm=tpm_adata,high_variance_genes_filter=np.array(genes)) #norm counts like cnmf
+      if(do_norm_counts):
+        norm_counts = get_norm_counts(counts=counts_adata,tpm=tpm_adata,high_variance_genes_filter=np.array(genes)) #norm counts like cnmf
+      else:
+        norm_counts = counts
       spectra_original = cnmf_obj.get_median_spectra(k=k) #get score 
       
       # filter 
