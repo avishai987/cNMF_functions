@@ -197,7 +197,7 @@ get_usage_from_score =
       if(do_norm_counts):
         norm_counts = get_norm_counts(counts=counts_adata,tpm=tpm_adata,high_variance_genes_filter=np.array(genes)) #norm counts like cnmf
       else:
-        norm_counts = counts
+        norm_counts = ad.AnnData(counts)
       spectra_original = cnmf_obj.get_median_spectra(k=k) #get score 
       
       # filter 
