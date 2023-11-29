@@ -117,7 +117,7 @@ metagenes_mean_compare <- function(dataset,time.point_var,prefix = "",patient.id
     fm <- as.formula(paste("Metagene_mean", "~", time.point_var)) #make formula to plot
     
     #plot and split by patient:   
-    stat.test = compare_means(formula = fm ,data = genes_by_tp_forPlot,method = test,group.by = patient.ident_var)%>% # Add pairwise comparisons p-value
+    stat.test = compare_means(formula = fm ,data = genes_by_tp_forPlot,method = test,group.by = patient.ident_var,p.adjust.method = "fdr")%>% # Add pairwise comparisons p-value
       dplyr::filter(group1 == pre_on[1] & group2 == pre_on[2])  #filter for pre vs on treatment only
     
     plt = ggboxplot(genes_by_tp_forPlot, x = time.point_var, y = "Metagene_mean", color = time.point_var) + #plot
