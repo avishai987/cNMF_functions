@@ -152,7 +152,7 @@ metagenes_mean_compare <- function(dataset,time.point_var,prefix = "",patient.id
   
   
 }
-
+#
 require(facefuns)
 metagenes_violin_compare = function(dataset,prefix = "",pre_on = c("OSI","NT"),axis.text.x = 11,test = "t.test", programs = c("Hypoxia","TNFa","Cell_cycle"),return_list = F){
   plt.lst = list()
