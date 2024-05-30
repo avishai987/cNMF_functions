@@ -269,50 +269,52 @@ py_run_string(code = get_usage_from_score) #load function to python
 py_run_string(code = compute_tpm) #load function to python
 
 # add this to cnmf.py to get median spectra score from cnmf object
-# def get_median_spectra(self, k, density_threshold=0.5, local_neighborhood_size = 0.30,show_clustering = True,
-#                        skip_density_and_return_after_stats = False, close_clustergram_fig=False,
-#                        refit_usage=True):
-#   merged_spectra = load_df_from_npz(self.paths['merged_spectra']%k)
-#   norm_counts = sc.read(self.paths['normalized_counts'])
-#   density_threshold_str = str(density_threshold)
-#   if skip_density_and_return_after_stats:
-#     density_threshold_str = '2'
-#   density_threshold_repl = density_threshold_str.replace('.', '_')
-#   n_neighbors = int(local_neighborhood_size * merged_spectra.shape[0]/k)
-#   
-#   # Rescale topics such to length of 1.
-#   l2_spectra = (merged_spectra.T/np.sqrt((merged_spectra**2).sum(axis=1))).T
-#   
-#   if not skip_density_and_return_after_stats:
-#     # Compute the local density matrix (if not previously cached)
-#     topics_dist = None
-#   if os.path.isfile(self.paths['local_density_cache'] % k):
-#     local_density = load_df_from_npz(self.paths['local_density_cache'] % k)
-#   else:
-#     #   first find the full distance matrix
-#     topics_dist = euclidean_distances(l2_spectra.values)
-#   #   partition based on the first n neighbors
-#   partitioning_order  = np.argpartition(topics_dist, n_neighbors+1)[:, :n_neighbors+1]
-#   #   find the mean over those n_neighbors (excluding self, which has a distance of 0)
-#   distance_to_nearest_neighbors = topics_dist[np.arange(topics_dist.shape[0])[:, None], partitioning_order]
-#   local_density = pd.DataFrame(distance_to_nearest_neighbors.sum(1)/(n_neighbors),
-#                                columns=['local_density'],
-#                                index=l2_spectra.index)
-#   save_df_to_npz(local_density, self.paths['local_density_cache'] % k)
-#   del(partitioning_order)
-#   del(distance_to_nearest_neighbors)
-#   
-#   density_filter = local_density.iloc[:, 0] < density_threshold
-#   l2_spectra = l2_spectra.loc[density_filter, :]
-#   
-#   kmeans_model = KMeans(n_clusters=k, n_init=10, random_state=1)
-#   kmeans_model.fit(l2_spectra)
-#   kmeans_cluster_labels = pd.Series(kmeans_model.labels_+1, index=l2_spectra.index)
-#   
-#   # Find median usage for each gene across cluster
-#   median_spectra = l2_spectra.groupby(kmeans_cluster_labels).median()
-#   
-#   # Normalize median spectra to probability distributions.
-#   median_spectra = (median_spectra.T/median_spectra.sum(1)).T
-#   return (median_spectra)
+# "
+#     def get_median_spectra(self, k, density_threshold=0.5, local_neighborhood_size = 0.30,show_clustering = True,
+#                   skip_density_and_return_after_stats = False, close_clustergram_fig=False,
+#                   refit_usage=True):
+#         merged_spectra = load_df_from_npz(self.paths['merged_spectra']%k)
+#         norm_counts = sc.read(self.paths['normalized_counts'])
+#         density_threshold_str = str(density_threshold)
+#         if skip_density_and_return_after_stats:
+#             density_threshold_str = '2'
+#         density_threshold_repl = density_threshold_str.replace('.', '_')
+#         n_neighbors = int(local_neighborhood_size * merged_spectra.shape[0]/k)
+# 
+#         # Rescale topics such to length of 1.
+#         l2_spectra = (merged_spectra.T/np.sqrt((merged_spectra**2).sum(axis=1))).T
+# 
+#         if not skip_density_and_return_after_stats:
+#             # Compute the local density matrix (if not previously cached)
+#             topics_dist = None
+#             if os.path.isfile(self.paths['local_density_cache'] % k):
+#                 local_density = load_df_from_npz(self.paths['local_density_cache'] % k)
+#             else:
+#                 #   first find the full distance matrix
+#                 topics_dist = euclidean_distances(l2_spectra.values)
+#                 #   partition based on the first n neighbors
+#                 partitioning_order  = np.argpartition(topics_dist, n_neighbors+1)[:, :n_neighbors+1]
+#                 #   find the mean over those n_neighbors (excluding self, which has a distance of 0)
+#                 distance_to_nearest_neighbors = topics_dist[np.arange(topics_dist.shape[0])[:, None], partitioning_order]
+#                 local_density = pd.DataFrame(distance_to_nearest_neighbors.sum(1)/(n_neighbors),
+#                                              columns=['local_density'],
+#                                              index=l2_spectra.index)
+#                 save_df_to_npz(local_density, self.paths['local_density_cache'] % k)
+#                 del(partitioning_order)
+#                 del(distance_to_nearest_neighbors)
+# 
+#             density_filter = local_density.iloc[:, 0] < density_threshold
+#             l2_spectra = l2_spectra.loc[density_filter, :]
+# 
+#         kmeans_model = KMeans(n_clusters=k, n_init=10, random_state=1)
+#         kmeans_model.fit(l2_spectra)
+#         kmeans_cluster_labels = pd.Series(kmeans_model.labels_+1, index=l2_spectra.index)
+# 
+#         # Find median usage for each gene across cluster
+#         median_spectra = l2_spectra.groupby(kmeans_cluster_labels).median()
+# 
+#         # Normalize median spectra to probability distributions.
+#         median_spectra = (median_spectra.T/median_spectra.sum(1)).T
+#         return (median_spectra)
+#       "
 
