@@ -187,6 +187,30 @@ metagenes_violin_compare = function(dataset,prefix = "",pre_on = c("OSI","NT"),a
   }
 }
 
+metagenes_violin_combine_patients = function(dataset,prefix = "",pre_on = c("OSI","NT"),axis.text.x = 11,test = "t.test", programs = c("Hypoxia","TNFa","Cell_cycle"),return_list = F){
+  require(facefuns)
+  plt.lst = list()
+    genes_by_tp = FetchData(object = dataset,vars =  c("treatment",programs)) %>% filter(treatment %in% pre_on)  %>% as.data.frame() #mean expression
+    formula <- as.formula( paste("c(", paste(programs, collapse = ","), ")~ treatment ") )
+    
+    #plot and split by patient:   
+    stat.test = compare_means(formula = formula ,data = genes_by_tp,method = test,p.adjust.method = "fdr")%>% # Add pairwise comparisons p-value
+      dplyr::filter(group1 == pre_on[1] & group2 == pre_on[2])  #filter for pre vs on treatment only
+    
+    stat.test$p.format =stat.test$p.adj #modift 0 pvalue to be lowest possible float
+    stat.test$p.format[!stat.test$p.format == 0 ] <- paste("=",stat.test$p.format[!stat.test$p.format == 0 ])
+    stat.test$p.format[stat.test$p.format == 0 ] <- paste("<",.Machine$double.xmin %>% signif(digits = 3))
+    
+    
+    genes_by_tp = reshape2::melt(genes_by_tp, id.vars = c("treatment"),value.name = "score")
+    plt = ggplot(genes_by_tp, aes(x = variable, y = score,fill = treatment)) + geom_split_violin(scale = 'width')+ 
+      geom_boxplot(width = 0.25, notch = FALSE, notchwidth = .4, outlier.shape = NA, coef=0)+
+      ylim(min(genes_by_tp$score),max(genes_by_tp$score)*1.25)
+    plt = plt +stat_pvalue_manual(stat.test, label = "p {p.format}",  #add p value
+                                  y.position = max(genes_by_tp$score)*1.08,inherit.aes = F,size = 3.3,x = ".y.") # set position at the top value
+    return(plt)
+}
+
 # These functions are aim to calculate to usage, but with other count matrix. usage usually calculated with: usage = NMF(counts,gep_scores), so here we can make it with any 
 # count matrix. This is good for the Harmony case, when we want to calculate gep with the corrected values, but infer the usage based on the original count matrix
 # so we will be sure the Harmony correction is not creating bias on the usage. 
