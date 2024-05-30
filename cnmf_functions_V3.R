@@ -240,7 +240,7 @@ get_usage_from_score =
       spectra = spectra.T.reindex(norm_counts.to_df().columns).T #reorder spectra genes like norm_counts
       
       # calculate usage
-	  norm_counts.X = norm_counts.X.astype(np.float32)
+      norm_counts.X = norm_counts.X.astype(np.float32)
       usage_by_calc,_,_ = non_negative_factorization(X=norm_counts.X, H = spectra.values, update_H=False,n_components = k,max_iter=1000,init ='random')
       usage_by_calc = pd.DataFrame(usage_by_calc, index=counts.index, columns=spectra.index) #insert to df+add names
       
