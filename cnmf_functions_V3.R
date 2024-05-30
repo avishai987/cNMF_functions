@@ -261,7 +261,7 @@ get_usage_from_score =
 compute_tpm = 
   "def compute_tpm(input_counts): #from cnmf.py
     tpm = input_counts.copy()
-    sc.pp.normalize_per_cell(tpm, counts_per_cell_after=1e6,copy=True)
+    sc.pp.normalize_per_cell(tpm.to_numpy(), counts_per_cell_after=1e6,copy=True)
     return(tpm)"
 
 py_run_string(code = get_norm_counts) #load function to python
