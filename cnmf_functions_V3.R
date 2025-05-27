@@ -10,9 +10,7 @@ sum2one <- function(df) {
   
 }
 
-min_max_normalize <- function(x, na.rm = TRUE) {
-  return((x- min(x)) /(max(x)-min(x)))
-}
+
 
 #assign program to each cell after add_prgorams_score
 #' @param larger_by how much a program should be greater then the second one to be assign as this program of this cell.
