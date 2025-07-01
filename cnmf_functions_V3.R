@@ -363,9 +363,11 @@ def get_median_spectra(cnmf_obj, k, density_threshold=0.5, local_neighborhood_si
 	# Normalize median spectra to probability distributions.
 	median_spectra = (median_spectra.T/median_spectra.sum(1)).T
 	return (median_spectra)"
-	
-py_run_string(code = get_norm_counts) #load function to python
-py_run_string(code = get_usage_from_score) #load function to python
-py_run_string(code = compute_tpm) #load function to python
-py_run_string(code = get_median_spectra) #load function to python
+add_python_funs <- function() {
+	py_run_string(code = get_norm_counts) #load function to python
+	py_run_string(code = get_usage_from_score) #load function to python
+	py_run_string(code = compute_tpm) #load function to python
+	py_run_string(code = get_median_spectra) #load function to python
+}	
+
 
