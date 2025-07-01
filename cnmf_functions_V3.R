@@ -31,6 +31,53 @@ program_assignment <- function(dataset,larger_by = 1,program_names) {
   return(dataset)
 }
 
+
+programs_dotplot <- function(seurat_obj,treatment_var) {
+  # return dotplot of z score expression and fraction of assigned cells
+  #run program_assignment first
+  
+  #get program_assignment_data:
+    program_assignment_data = FetchData(object = xeno,vars = c(treatment_var,"program.assignment"))%>%
+    group_by_at(treatment_var) %>% 
+  summarize(
+      program.1  = sum(program.assignment == "Program.1"),
+      program.2  = sum(program.assignment == "Program.2"),
+      program.3  = sum(program.assignment == "Program.3"),
+      program.4  = sum(program.assignment == "Program.4"),
+      program.5  = sum(program.assignment == "Program.5"),
+    ) %>% 
+    ungroup() %>% 
+    t() %>% as.data.frame() %>% janitor::row_to_names(1) %>% rownames_to_column("program") %>% 
+    pivot_longer(!program, names_to = treatment_var, values_to = "assigned_cells") %>% 
+    mutate(assigned_cells = as.numeric(assigned_cells))
+   
+   #get program expression data:
+  program_exprs_data = FetchData(object = xeno,vars = c(treatment_var, paste0(names(xeno_cell_usage),"_scaled")))%>%
+  group_by_at(treatment_var) %>% 
+    summarize(across(everything(),mean)) %>% 
+    ungroup() %>% 
+    t() %>% as.data.frame() %>% janitor::row_to_names(1) %>% rownames_to_column("program") %>% 
+    pivot_longer(!program, names_to = treatment_var, values_to = "z_score_level") %>% 
+    mutate(program = gsub(program, pattern = "_scaled", replacement = "")) %>% 
+    mutate(program = gsub(program, pattern = "Program", replacement = "program"))%>% 
+    mutate(z_score_level = as.numeric(z_score_level))
+  
+  #join and add cells fraction data
+  n_cells_treatment = table(xeno[[treatment_var]])
+  all_data = full_join(program_assignment_data,program_exprs_data,by = c("program" ,  treatment_var))
+  all_data = all_data %>% mutate(cells_in_treatment = as.vector(n_cells_treatment[all_data[[treatment_var]]])) %>% mutate(cells_fraction = assigned_cells/cells_in_treatment)
+  
+  # plot
+  p = ggplot(data = all_data, mapping = aes_string(x = "program", 
+      y = treatment_var)) + geom_point(mapping = aes_string(size = "cells_fraction", 
+      color = 'z_score_level')) + scale_size(range = c(1, 8)) + theme(axis.title.x = element_blank(), 
+      axis.title.y = element_blank()) + guides(size = guide_legend(title = "assigned cells fraction")) + 
+      labs(x = "Features", y = treatment_var) + cowplot::theme_cowplot()+
+    scale_color_gradient(low = "lightblue", high = "darkblue")
+  # change x axis names to program names
+   p+scale_x_discrete(labels= paste0(names(xeno_cell_usage),"\n(",c("IFNa","TNFa-NFKb","HIF","Cell_Cycle"),")"))
+  return(p)
+}
 cell_percentage = function(dataset,time.point_var, by_program = F, by_tp = F,x_order = NULL) {
   if(by_program){
     data =FetchData(object = dataset,vars = c("program.assignment",time.point_var))
