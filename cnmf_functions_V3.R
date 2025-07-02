@@ -32,7 +32,7 @@ program_assignment <- function(dataset,larger_by = 1,program_names) {
 }
 
 
-programs_dotplot <- function(seurat_obj,treatment_var) {
+programs_dotplot <- function(seurat_obj,treatment_var,program_names) {
   # return dotplot of z score expression and fraction of assigned cells
   #run program_assignment first
   
@@ -52,7 +52,7 @@ programs_dotplot <- function(seurat_obj,treatment_var) {
     mutate(assigned_cells = as.numeric(assigned_cells))
    
    #get program expression data:
-  program_exprs_data = FetchData(object = seurat_obj,vars = c(treatment_var, paste0(names(xeno_cell_usage),"_scaled")))%>%
+  program_exprs_data = FetchData(object = seurat_obj,vars = c(treatment_var, program_names))%>%
   group_by_at(treatment_var) %>% 
     summarize(across(everything(),mean)) %>% 
     ungroup() %>% 
@@ -75,7 +75,7 @@ programs_dotplot <- function(seurat_obj,treatment_var) {
       labs(x = "Features", y = treatment_var) + cowplot::theme_cowplot()+
     scale_color_gradient(low = "lightblue", high = "darkblue")
   # change x axis names to program names
-   p+scale_x_discrete(labels= paste0(names(xeno_cell_usage),"\n(",c("IFNa","TNFa-NFKb","HIF","Cell_Cycle"),")"))
+   p+scale_x_discrete(labels= paste0(program_names,"\n(",c("IFNa","TNFa-NFKb","HIF","Cell_Cycle"),")"))
   return(p)
 }
 cell_percentage = function(dataset,time.point_var, by_program = F, by_tp = F,x_order = NULL) {
