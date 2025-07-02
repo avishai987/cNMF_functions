@@ -37,7 +37,7 @@ programs_dotplot <- function(seurat_obj,treatment_var) {
   #run program_assignment first
   
   #get program_assignment_data:
-    program_assignment_data = FetchData(object = xeno,vars = c(treatment_var,"program.assignment"))%>%
+    program_assignment_data = FetchData(object = seurat_obj,vars = c(treatment_var,"program.assignment"))%>%
     group_by_at(treatment_var) %>% 
   summarize(
       program.1  = sum(program.assignment == "Program.1"),
@@ -52,7 +52,7 @@ programs_dotplot <- function(seurat_obj,treatment_var) {
     mutate(assigned_cells = as.numeric(assigned_cells))
    
    #get program expression data:
-  program_exprs_data = FetchData(object = xeno,vars = c(treatment_var, paste0(names(xeno_cell_usage),"_scaled")))%>%
+  program_exprs_data = FetchData(object = seurat_obj,vars = c(treatment_var, paste0(names(xeno_cell_usage),"_scaled")))%>%
   group_by_at(treatment_var) %>% 
     summarize(across(everything(),mean)) %>% 
     ungroup() %>% 
@@ -63,7 +63,7 @@ programs_dotplot <- function(seurat_obj,treatment_var) {
     mutate(z_score_level = as.numeric(z_score_level))
   
   #join and add cells fraction data
-  n_cells_treatment = table(xeno[[treatment_var]])
+  n_cells_treatment = table(seurat_obj[[treatment_var]])
   all_data = full_join(program_assignment_data,program_exprs_data,by = c("program" ,  treatment_var))
   all_data = all_data %>% mutate(cells_in_treatment = as.vector(n_cells_treatment[all_data[[treatment_var]]])) %>% mutate(cells_fraction = assigned_cells/cells_in_treatment)
   
